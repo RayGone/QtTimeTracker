@@ -5,7 +5,8 @@ SOURCES += \
 
 resources.files = main.qml 
 resources.prefix = /$${TARGET}
-RESOURCES += resources
+RESOURCES += resources \
+    TimeTracker.qrc
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
@@ -19,5 +20,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    icons/minimize.png \
-    icons/move.png
+    Icons/* \
+    Templates/* \
+    Test.qml

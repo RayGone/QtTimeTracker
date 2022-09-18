@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Icons/minimize.png</file>
+        <file>Icons/move.png</file>
+        <file>Icons/pause.png</file>
+        <file>Icons/play.png</file>
+        <file>Icons/stop.png</file>
+        <file>Templates/MoveWindow.qml</file>
+    </qresource>
+</RCC>
