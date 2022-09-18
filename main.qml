@@ -18,7 +18,10 @@ ApplicationWindow {
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
 
+    property var database
     property int state: 0 //0 means not tracking or stopped; 1 means tracking time; 2 means tracking but currently paused;
+    property int tracked_time: 0
+    property string tString: "Time Tracker"
 
     QtObject{
         id: images
@@ -33,27 +36,59 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
-        console.log(Screen.width,Screen.height)
+        //console.log(Screen.width,Screen.height)
         setX(Screen.width - (width+20))
         setY(Screen.height - height*1.5)
-        console.log(Screen.pixelDensity)
-        Qt.Scree
+        //console.log(Screen.pixelDensity)
+
+        database = LocalStorage.openDatabaseSync("TimeTracker", "1.0", "Database used by TimeTracker App to store data", 1000000);
+        createDatabase()
     }
 
-    function saveTimeBeforeClose(){
+    function createDatabase(){
+        main.database.transaction(
+            function(tx) {
+                // Create the database if it doesn't already exist
+                //tx.executeSql('DROP TABLE TimeTracks')
+                tx.executeSql('CREATE TABLE IF NOT EXISTS TimeTracks(trackid INTEGER PRIMARY KEY AUTOINCREMENT, work TEXT, start TIMESTAMP, end TIMESTAMP, tracked_time INTEGER)');
+            }
+        )
+        console.log('Database Table Created!!')
+    }
 
+    function insertStart(work_desc = 'Work Item'){
+        if(!work_desc) work_desc = "Work Item"
+        main.database.transaction(
+                    function(tx){
+                        tx.executeSql("INSERT INTO TimeTracks(work,start) VALUES (?,strftime('%s'))",[work_desc])
+                    })
+    }
+
+    function insertEnd(tracked_time = 1,work_desc){
+        main.database.transaction(
+                    function(tx){
+                        var rs = tx.executeSql("SELECT trackid FROM TimeTracks ORDER BY trackid DESC LIMIT 1")
+                        var id = rs.rows.item(0)['trackid']
+
+                        tx.executeSql("UPDATE TimeTracks SET tracked_time = ?, work = ?, end = strftime('%s') WHERE trackid=?",[tracked_time,work_desc,id])
+                    })
+    }
+
+    function saveTimeBeforeClose(){        
+        insertEnd(tracked_time,workDescription.text)
     }
 
     Item{
+        id: buttons
         width: main.width
         height: main.height
+        visible: active
         Rectangle{
             id: moveWindow
             width: 20
             height: 20
             radius: width/2
             color: "white"
-            visible: active
 
             Image{
                 width: parent.width
@@ -164,6 +199,7 @@ ApplicationWindow {
     }
 
     ColumnLayout{
+        id: mainLayout
         Layout.fillHeight: true
         Layout.fillWidth: true
 
@@ -185,89 +221,236 @@ ApplicationWindow {
 
             Item{
                 id: mainContent
-                width: rect.width*0.4
-                height: rect.height* 0.4
-                anchors.centerIn: parent
+                anchors.fill: parent
+                visible: !secondaryContent.visible
 
-                Image{
-                    id: playIcon
-                    source: images.play
+                Item{
+                    id: trackButtons
                     width: rect.width*0.4
                     height: rect.height* 0.4
-                    visible: true
+                    anchors.centerIn: parent
+
+                    Image{
+                        id: playIcon
+                        source: images.play
+                        width: rect.width*0.4
+                        height: rect.height* 0.4
+                        visible: true
+                    }
+
+                    Image{
+                        id: pauseIcon
+                        source: images.pause
+                        width: rect.width*0.4
+                        height: rect.height* 0.4
+                        visible: false
+                    }
+
+                    MouseArea{
+                        anchors.fill: trackButtons
+                        onClicked: {
+                            trackButtons.focus = true
+                            if(main.state === 0 || main.state === 2){ // Tracking Started
+                                if(main.state === 0){
+                                    insertStart(workDescription.text)
+                                }
+                                main.state = 1
+                                playIcon.visible = false
+                                pauseIcon.visible = true
+                                tracker.running = true
+                            }
+                            else if(main.state === 1){// Tracking Paused
+                                main.state = 2
+                                playIcon.visible = true
+                                pauseIcon.visible = false
+                                tracker.running = false
+                            }
+                        }
+                    }
+
                 }
 
-                Image{
-                    id: pauseIcon
-                    source: images.pause
-                    width: rect.width*0.4
-                    height: rect.height* 0.4
-                    visible: false
+                Item{
+                    id: stopBtn
+                    anchors.left: trackButtons.right
+                    anchors.verticalCenter: trackButtons.verticalCenter
+                    width: side.width + 10
+                    height: side.height
+                    visible: main.state
+                    Rectangle{
+                        id:side
+                        height: trackButtons.height/2
+                        width: trackButtons.width/2
+                        radius: width/2
+                        color: "white"
+                        anchors.centerIn: parent
+
+                        Image{
+                            source: images.stop
+                            height: parent.height
+                            width: parent.width
+                        }
+
+                        MouseArea{
+                            anchors.fill: parent
+                            onClicked: {
+                                main.state = 0
+                                playIcon.visible = true
+                                pauseIcon.visible = false
+                                tracker.running = false
+                                insertEnd(tracked_time,workDescription.text)
+                                main.tracked_time = 0
+                                alertMsg.text = "Start Tracking"
+                            }
+                        }
+                    }
                 }
 
-                MouseArea{
-                    anchors.fill: mainContent
-                    onClicked: {
-                        mainContent.focus = true
-                        if(main.state === 0 || main.state === 2){
-                            main.state = 1
-                            playIcon.visible = false
-                            pauseIcon.visible = true
+                TextInput{
+                    id: workDescription
+                    anchors.top: trackButtons.bottom
+                    padding: 5
+                    anchors.horizontalCenter: trackButtons.horizontalCenter
+                    width: rect.width/1.5
+                    font.pointSize: 8
+                    text: "Work Item 1"
+                    Material.background: "white"
+                    color: "white"
+                    horizontalAlignment: Text.AlignHCenter
+                    readOnly: false
+                    maximumLength: 20
+                    clip: true
+
+                    Rectangle{
+                        anchors.fill: parent
+                        color: 'transparent'
+                        border.color: 'gray'
+                        border.width: 1
+                        radius: 10
+
+                    }
+                }
+
+                Rectangle{
+                    id: alert
+                    color: 'green'
+                    width: rect.width/1.5
+                    height: 20
+                    radius: 5
+                    anchors.horizontalCenter: mainContent.horizontalCenter
+                    y: 20
+                    Material.elevation: 10
+
+                    Behavior on opacity{
+                        NumberAnimation {
+                            target: rect
+                            property: "opacity"
+                            duration: 1000
+                            easing.type: Easing.InOutQuad
                         }
-                        else if(main.state === 1){
-                            main.state = 2
-                            playIcon.visible = true
-                            pauseIcon.visible = false
-                        }
+                    }
+
+                    Text{
+                        id: alertMsg
+                        anchors.centerIn: parent
+                        padding: 5
+                        width: rect.width/2
+                        font.pointSize: 8
+                        text: "Start Tracking"
+                        Material.background: "white"
+                        color: "white"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        clip: true
                     }
                 }
             }
 
             Item{
-                anchors.left: mainContent.right
-                anchors.verticalCenter: mainContent.verticalCenter
-                width: side.width + 10
-                height: side.height
-                visible: main.state
-                Rectangle{
-                    id:side
-                    height: mainContent.height/2
-                    width: mainContent.width/2
-                    radius: width/2
-                    color: "white"
+                id: secondaryContent
+                anchors.fill: parent
+                visible: !main.active && main.tracked_time
+
+                Text {
+                    id: timeDisplay
+                    text: qsTr(tString)
+                    font.pointSize: 17
                     anchors.centerIn: parent
-
-                    Image{
-                        source: images.stop
-                        height: parent.height
-                        width: parent.width
-                    }
-
-                    MouseArea{
-                        anchors.fill: parent
-                        onClicked: {
-                            main.state = 0
-                        }
-                    }
+                    horizontalAlignment: Text.AlignHCenter
+                    color: "white"
+                    font.weight: 700
+                    style: Text.Outline
+                    styleColor: "blue"
                 }
-            }
 
-            TextInput{
-                id: workDescription
-                anchors.top: mainContent.bottom
-                padding: 5
-                anchors.horizontalCenter: mainContent.horizontalCenter
-                width: rect.width/2
-                font.pointSize: 8
-                text: "Work Item 1"
-                Material.background: "white"
-                color: "white"
-                horizontalAlignment: Text.AlignHCenter
-                readOnly: false
-                maximumLength: 20
-                clip: true
+
+                // Properties Related to Canvas / Progress Bar
+                // This is taken from https://github.com/rafzby/circular-progressbar
+                // -------------------------------------------------------------------
+                property int size: 150
+                property int lineWidth: 5
+                property real value: 0
+
+                property color primaryColor: "#29b6f6"
+                property color secondaryColor: "#e0e0e0"
+
+                property int animationDuration: 1000
+
+                Canvas {
+                       id: progressBar
+
+                       property real degree: 0
+
+                       anchors.fill: parent
+                       antialiasing: true
+
+                       onDegreeChanged: {
+                           requestPaint();
+                       }
+
+                       onPaint: {
+                           var ctx = getContext("2d");
+
+                           var x = root.width/2;
+                           var y = root.height/2;
+
+                           var radius = root.size/2 - root.lineWidth
+                           var startAngle = (Math.PI/180) * 270;
+                           var fullAngle = (Math.PI/180) * (270 + 360);
+                           var progressAngle = (Math.PI/180) * (270 + degree);
+
+                           ctx.reset()
+
+                           ctx.lineCap = 'round';
+                           ctx.lineWidth = root.lineWidth;
+
+                           ctx.beginPath();
+                           ctx.arc(x, y, radius, startAngle, fullAngle);
+                           ctx.strokeStyle = root.secondaryColor;
+                           ctx.stroke();
+
+                           ctx.beginPath();
+                           ctx.arc(x, y, radius, startAngle, progressAngle);
+                           ctx.strokeStyle = root.primaryColor;
+                           ctx.stroke();
+                       }
+
+                       Behavior on degree {
+                           NumberAnimation {
+                               duration: root.animationDuration
+                           }
+                       }
+                   }
+
             }
         }
+    }
+
+    Rectangle{
+        color: "transparent"
+        border.width: 1
+        border.color: "white"
+        visible: !main.active
     }
 
     onActiveChanged: {
@@ -289,10 +472,32 @@ ApplicationWindow {
         onTriggered: {
             if(rect.opacity === 04) rect.opacity = 0.2;
             else {
-                showMinimized();
+                if(!tracked_time) showMinimized();
                 console.log('App Inactive: Minimizing');
                 repeat = false
             }
+        }
+    }
+
+    Timer{
+        id: tracker
+        interval: 1000
+        repeat: true
+        running: false
+        onTriggered:{
+            main.tracked_time += 1
+
+            var m = parseInt(tracked_time/60)
+            var s = tracked_time - m*60
+            var h = parseInt(m/60)
+            m = m - h*60
+
+            tString = (h<10? "0"+h : h) + ":" + (m<10? "0"+m : m) + ":" + (s<10 ? "0"+s : s)
+            alertMsg.text = tString
+
+            progressBar.degree =
+
+            if(tracked_time%60 === 0) insertEnd(tracked_time,workDescription.text)
         }
     }
 
