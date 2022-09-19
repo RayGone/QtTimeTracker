@@ -45,6 +45,7 @@ ApplicationWindow {
         createDatabase()
     }
 
+
     function createDatabase(){
         main.database.transaction(
             function(tx) {
@@ -74,9 +75,38 @@ ApplicationWindow {
                     })
     }
 
-    function saveTimeBeforeClose(){        
+    function saveTimeBeforeClose(){
+        if(tracked_time)
         insertEnd(tracked_time,workDescription.text)
     }
+
+    function dumpData(){
+        var csv_string = "";
+        main.database.transaction(
+                    function(tx){
+                        var rs = tx.executeSql("SELECT trackid as SN,work as Work_Description, datetime(start,'unixepoch') as Started_At, datetime(end,'unixepoch') as Ended_At, tracked_time as Tracked_Seconds FROM TimeTracks")
+
+                        for(var i=0;i<rs.rows.length;i++){
+                            if(i==0){
+                                var keys = Object.keys(rs.rows.item(i)).join(',')
+                                csv_string += keys + "\n";
+                            }
+                            csv_string += Object.values(rs.rows.item(i)).join(",") + "\n"
+                        }
+                        console.log(csv_string)
+
+                        var filename = "file:///D:/Time_Track_Log_"+Date.now()+".csv"
+                        saveFile(filename,csv_string)
+                    })
+    }
+
+    function saveFile(fileUrl, text) {
+        var request = new XMLHttpRequest();
+        request.open("PUT", fileUrl, false);
+        request.send(text);
+        return request.status;
+    }
+
 
     Item{
         id: buttons
@@ -193,6 +223,7 @@ ApplicationWindow {
 
                 onClicked: {
                     //dump time tracked file
+                    dumpData()
                 }
             }
         }
@@ -252,6 +283,7 @@ ApplicationWindow {
                             trackButtons.focus = true
                             if(main.state === 0 || main.state === 2){ // Tracking Started
                                 if(main.state === 0){
+                                    main.tString = "00:00:00"
                                     insertStart(workDescription.text)
                                 }
                                 main.state = 1
@@ -264,6 +296,7 @@ ApplicationWindow {
                                 playIcon.visible = true
                                 pauseIcon.visible = false
                                 tracker.running = false
+                                main.tString = "Paused"
                             }
                         }
                     }
@@ -387,19 +420,17 @@ ApplicationWindow {
                 // Properties Related to Canvas / Progress Bar
                 // This is taken from https://github.com/rafzby/circular-progressbar
                 // -------------------------------------------------------------------
-                property int size: 150
-                property int lineWidth: 5
-                property real value: 0
-
-                property color primaryColor: "#29b6f6"
-                property color secondaryColor: "#e0e0e0"
-
+                property int lineWidth: 10
                 property int animationDuration: 1000
-
+                property var colorList: ["black","#FE2712","Blue","#f68f29","#b91d47","white","#66f629","#FD3A0F"]
+                property int colorIndex: 0
+                property color primaryColor: "black"
+                property color secondaryColor: "white"
                 Canvas {
                        id: progressBar
 
                        property real degree: 0
+                       property int prevProg: 0
 
                        anchors.fill: parent
                        antialiasing: true
@@ -408,36 +439,52 @@ ApplicationWindow {
                            requestPaint();
                        }
 
+                       function nextStep(value){
+                           var s = parseInt(value)
+                           if(s > prevProg){
+//                               console.log("before",secondaryContent.primaryColor,secondaryContent.secondaryColor)
+                               prevProg = s
+                               secondaryContent.colorIndex = (secondaryContent.colorIndex+1)%8
+//                               console.log(secondaryContent.colorIndex," is generated")
+                               secondaryContent.secondaryColor = secondaryContent.primaryColor
+                               secondaryContent.primaryColor = secondaryContent.colorList[secondaryContent.colorIndex]
+//                               console.log("after",secondaryContent.primaryColor,secondaryContent.secondaryColor)
+                           }
+                           value = value - s
+                           progressBar.degree = value * 360
+                       }
+
                        onPaint: {
                            var ctx = getContext("2d");
 
-                           var x = root.width/2;
-                           var y = root.height/2;
+                           var x = secondaryContent.width/2;
+                           var y = secondaryContent.height/2;
 
-                           var radius = root.size/2 - root.lineWidth
+                           var radius = mainContent.width/2 - secondaryContent.lineWidth
                            var startAngle = (Math.PI/180) * 270;
                            var fullAngle = (Math.PI/180) * (270 + 360);
                            var progressAngle = (Math.PI/180) * (270 + degree);
+                           //console.log(x,y,radius,startAngle,fullAngle,progressAngle)
 
                            ctx.reset()
 
                            ctx.lineCap = 'round';
-                           ctx.lineWidth = root.lineWidth;
+                           ctx.lineWidth = secondaryContent.lineWidth;
 
                            ctx.beginPath();
                            ctx.arc(x, y, radius, startAngle, fullAngle);
-                           ctx.strokeStyle = root.secondaryColor;
+                           ctx.strokeStyle = secondaryContent.secondaryColor;
                            ctx.stroke();
 
                            ctx.beginPath();
                            ctx.arc(x, y, radius, startAngle, progressAngle);
-                           ctx.strokeStyle = root.primaryColor;
+                           ctx.strokeStyle = secondaryContent.primaryColor;
                            ctx.stroke();
                        }
 
                        Behavior on degree {
                            NumberAnimation {
-                               duration: root.animationDuration
+                               duration: secondaryContent.animationDuration
                            }
                        }
                    }
@@ -456,12 +503,11 @@ ApplicationWindow {
     onActiveChanged: {
         if(active){
             showNormal()
-            rect.opacity = 1;
+            rect.opacity = 1
         }else{
             trigger.repeat = true
             rect.opacity = 0.4
         }
-
     }
 
     Timer{
@@ -484,6 +530,8 @@ ApplicationWindow {
         interval: 1000
         repeat: true
         running: false
+
+        property double v: 0
         onTriggered:{
             main.tracked_time += 1
 
@@ -495,7 +543,8 @@ ApplicationWindow {
             tString = (h<10? "0"+h : h) + ":" + (m<10? "0"+m : m) + ":" + (s<10 ? "0"+s : s)
             alertMsg.text = tString
 
-            progressBar.degree =
+            if(tracked_time == 1 || tracked_time%20 === 0)
+                progressBar.nextStep((tracked_time%3600)/3600)
 
             if(tracked_time%60 === 0) insertEnd(tracked_time,workDescription.text)
         }
