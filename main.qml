@@ -258,7 +258,7 @@ ApplicationWindow {
                 Item{
                     id: trackButtons
                     width: rect.width*0.4
-                    height: rect.height* 0.4
+                    height: rect.height*0.4 + 3
                     anchors.centerIn: parent
 
                     Image{
@@ -346,19 +346,20 @@ ApplicationWindow {
                     anchors.horizontalCenter: trackButtons.horizontalCenter
                     width: rect.width/1.5
                     font.pointSize: 8
-                    text: "Work Item 1"
+                    text: ""
                     Material.background: "white"
                     color: "white"
                     horizontalAlignment: Text.AlignHCenter
                     readOnly: false
                     maximumLength: 20
                     clip: true
+                    y: 20
 
                     Rectangle{
                         anchors.fill: parent
-                        color: 'transparent'
-                        border.color: 'gray'
-                        border.width: 1
+                        color: '#4d94ff33'
+                        border.color: "#0066ff"
+                        border.width: 2
                         radius: 10
 
                     }
@@ -366,13 +367,15 @@ ApplicationWindow {
 
                 Rectangle{
                     id: alert
-                    color: 'green'
+                    color: '#4d94ff'
                     width: rect.width/1.5
                     height: 20
                     radius: 5
                     anchors.horizontalCenter: mainContent.horizontalCenter
                     y: 20
-                    Material.elevation: 10
+                    Material.elevation: 15
+                    border.color: "#0066ff"
+                    border.width: 2
 
                     Behavior on opacity{
                         NumberAnimation {
@@ -395,6 +398,7 @@ ApplicationWindow {
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                         clip: true
+                        font.weight: Font.Bold
                     }
                 }
             }
