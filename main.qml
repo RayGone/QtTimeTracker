@@ -1,8 +1,11 @@
 import QtQuick 2.15
+import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.LocalStorage 2.15
+import QtQuick.Shapes 1.3
+import Qt.labs.settings 1.1
 //import "./Templates"
 
 ApplicationWindow {
@@ -18,7 +21,10 @@ ApplicationWindow {
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
 
+    property var database
     property int state: 0 //0 means not tracking or stopped; 1 means tracking time; 2 means tracking but currently paused;
+    property int tracked_time: 0
+    property string tString: "Time Tracker"
 
     QtObject{
         id: images
@@ -32,28 +38,105 @@ ApplicationWindow {
         readonly property string stop: "data:image/png;base64,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"
     }
 
+    Settings{
+        id: settings
+    }
+
     Component.onCompleted: {
-        console.log(Screen.width,Screen.height)
-        setX(Screen.width - (width+20))
-        setY(Screen.height - height*1.5)
-        console.log(Screen.pixelDensity)
-        Qt.Scree
+        //console.log(Screen.width,Screen.height)
+        var pos = JSON.parse(settings.value("window-position",false))
+
+        if(pos){
+            console.log(pos)
+            setX(pos.x)
+            setY(pos.y)
+        }else{
+            setX(Screen.width - (width+20))
+            setY(Screen.height - height*1.5)
+        }
+
+        database = LocalStorage.openDatabaseSync("TimeTracker", "1.0", "Database used by TimeTracker App to store data", 1000000);
+        createDatabase()
+
+        workDescription.text = "Prev: "+settings.value("last-work-description","Work Description")
+    }
+
+
+    function createDatabase(){
+        main.database.transaction(
+            function(tx) {
+                // Create the database if it doesn't already exist
+                //tx.executeSql('DROP TABLE TimeTracks')
+                tx.executeSql('CREATE TABLE IF NOT EXISTS TimeTracks(trackid INTEGER PRIMARY KEY AUTOINCREMENT, work TEXT, start TIMESTAMP, end TIMESTAMP, tracked_time INTEGER)');
+            }
+        )
+        console.log('Database Table Created!!')
+    }
+
+    function insertStart(work_desc = 'Work Item'){
+        if(!work_desc) work_desc = "Work Item"
+        main.database.transaction(
+                    function(tx){
+                        tx.executeSql("INSERT INTO TimeTracks(work,start) VALUES (?,strftime('%s'))",[work_desc])
+                    })
+    }
+
+    function insertEnd(tracked_time = 1,work_desc){
+        main.database.transaction(
+                    function(tx){
+                        var rs = tx.executeSql("SELECT trackid FROM TimeTracks ORDER BY trackid DESC LIMIT 1")
+                        var id = rs.rows.item(0)['trackid']
+
+                        tx.executeSql("UPDATE TimeTracks SET tracked_time = ?, work = ?, end = strftime('%s') WHERE trackid=?",[tracked_time,work_desc,id])
+                    })
     }
 
     function saveTimeBeforeClose(){
+        if(tracked_time)
+        insertEnd(tracked_time,workDescription.text)
+    }
 
+    function dumpData(){
+        var csv_string = "";
+        main.database.transaction(
+                    function(tx){
+                        var rs = tx.executeSql("SELECT trackid as SN,work as Work_Description, datetime(start,'unixepoch') as Started_At, datetime(end,'unixepoch') as Ended_At, tracked_time as Tracked_Seconds FROM TimeTracks")
+
+                        for(var i=0;i<rs.rows.length;i++){
+                            if(i==0){
+                                var keys = Object.keys(rs.rows.item(i)).join(',')
+                                csv_string += keys + "\n";
+                            }
+                            csv_string += Object.values(rs.rows.item(i)).join(",") + "\n"
+                        }
+                        console.log(csv_string)
+
+                        var filename = "file:///D:/Time_Track_Log_"+Date.now()+".csv"
+                        saveFile(filename,csv_string)
+                    })
+    }
+
+    function saveFile(fileUrl, text) {
+        var request = new XMLHttpRequest();
+        request.open("PUT", fileUrl, false);
+        request.send(text);
+        return request.status;
     }
 
     Item{
+        id: buttons
         width: main.width
         height: main.height
+        visible: active
+
         Rectangle{
             id: moveWindow
             width: 20
             height: 20
             radius: width/2
             color: "white"
-            visible: active
+            border.color: Material.color(Material.Blue,Material.Shade900)
+            border.width: 2
 
             Image{
                 width: parent.width
@@ -75,11 +158,13 @@ ApplicationWindow {
                  onMouseXChanged: {
                      var dx = mouseX - prevX
                      main.setX(main.x + dx)
+                     settings.setValue("window-position",JSON.stringify({x: main.x,y:main.y}))
                  }
 
                  onMouseYChanged: {
                      var dy = mouseY - prevY
                      main.setY(main.y + dy)
+                     settings.setValue("window-position",JSON.stringify({x: main.x,y:main.y}))
                  }
             }
         }
@@ -89,7 +174,9 @@ ApplicationWindow {
             width: 20
             height: 20
             radius: width/2
-            color: "white"
+            color: Material.color(Material.Blue,Material.Shade200)
+            border.color: Material.color(Material.Blue,Material.Shade900)
+            border.width: 2
             visible: active
             anchors.left: parent.left
             anchors.bottom: parent.bottom
@@ -112,16 +199,18 @@ ApplicationWindow {
 
         Rectangle{
             id: closeWindow
-            width: 20
-            height: 20
+            width: 24
+            height: 24
             radius: width/2
-            color: "white"
+            color: Material.color(Material.Blue,Material.Shade700)
+            border.color: Material.color(Material.Blue,Material.Shade900)
+            border.width: 2
             visible: active
             anchors.right: parent.right
 
             Image{
-                width: parent.width * 0.6
-                height: parent.height * 0.6
+                width: parent.width * 0.5
+                height: parent.height * 0.5
                 anchors.centerIn: parent
                 source: images.close
             }
@@ -141,10 +230,12 @@ ApplicationWindow {
             width: 20
             height: 20
             radius: width/2
-            color: "white"
             visible: active
             anchors.right: parent.right
             anchors.bottom: parent.bottom
+            color: Material.color(Material.Blue,Material.Shade700)
+            border.color: Material.color(Material.Blue,Material.Shade900)
+            border.width: 2
 
             Image{
                 width: parent.width
@@ -158,12 +249,14 @@ ApplicationWindow {
 
                 onClicked: {
                     //dump time tracked file
+                    dumpData()
                 }
             }
         }
     }
 
     ColumnLayout{
+        id: mainLayout
         Layout.fillHeight: true
         Layout.fillWidth: true
 
@@ -173,6 +266,12 @@ ApplicationWindow {
             height: main.height
             radius: width/2
             color: Material.color(Material.Red,Material.Shade900)
+            // I want to use conical ConicalGradient or RadialGradient
+            gradient: RadialGradient {
+                GradientStop { position: 0.0; color: Material.color(Material.Blue,Material.Shade600) }
+                GradientStop { position: 0.5; color: Material.color(Material.BlueGrey,Material.Shade800) }
+                GradientStop { position: 1.0; color: Material.color(Material.Blue,Material.Shade600) }
+            }
 
             Behavior on opacity{
                 NumberAnimation {
@@ -185,100 +284,284 @@ ApplicationWindow {
 
             Item{
                 id: mainContent
-                width: rect.width*0.4
-                height: rect.height* 0.4
-                anchors.centerIn: parent
+                anchors.fill: parent
+                visible: !secondaryContent.visible
 
-                Image{
-                    id: playIcon
-                    source: images.play
+                Item{
+                    id: trackButtons
                     width: rect.width*0.4
-                    height: rect.height* 0.4
-                    visible: true
+                    height: rect.height*0.4 + 3
+                    anchors.centerIn: parent
+
+                    Image{
+                        id: playIcon
+                        source: images.play
+                        width: rect.width*0.4
+                        height: rect.height* 0.4
+                        visible: true
+                    }
+
+                    Image{
+                        id: pauseIcon
+                        source: images.pause
+                        width: rect.width*0.4
+                        height: rect.height* 0.4
+                        visible: false
+                    }
+
+                    MouseArea{
+                        anchors.fill: trackButtons
+                        onClicked: {
+                            trackButtons.focus = true
+                            if(main.state === 0 || main.state === 2){ // Tracking Started
+                                if(main.state === 0){
+                                    main.tString = "00:00:00"
+                                    insertStart(workDescription.text)
+                                }
+                                main.state = 1
+                                playIcon.visible = false
+                                pauseIcon.visible = true
+                                tracker.running = true
+                            }
+                            else if(main.state === 1){// Tracking Paused
+                                main.state = 2
+                                playIcon.visible = true
+                                pauseIcon.visible = false
+                                tracker.running = false
+                                main.tString = "Paused"
+                                alertMsg.text = "Paused"
+                            }
+                        }
+                    }
+
                 }
 
-                Image{
-                    id: pauseIcon
-                    source: images.pause
-                    width: rect.width*0.4
-                    height: rect.height* 0.4
-                    visible: false
+                Item{
+                    id: stopBtn
+                    anchors.left: trackButtons.right
+                    anchors.verticalCenter: trackButtons.verticalCenter
+                    width: side.width + 10
+                    height: side.height
+                    visible: main.state
+                    Rectangle{
+                        id:side
+                        height: trackButtons.height/2
+                        width: trackButtons.width/2
+                        radius: width/2
+                        color: Material.color(Material.Blue,Material.Shade700)
+                        anchors.centerIn: parent
+
+                        Image{
+                            source: images.stop
+                            height: parent.height
+                            width: parent.width
+                        }
+
+                        MouseArea{
+                            anchors.fill: parent
+                            onClicked: {
+                                main.state = 0
+                                playIcon.visible = true
+                                pauseIcon.visible = false
+                                tracker.running = false
+                                insertEnd(tracked_time,workDescription.text)
+                                main.tracked_time = 0
+                                alertMsg.text = "Start Tracking"
+                            }
+                        }
+                    }
                 }
 
-                MouseArea{
-                    anchors.fill: mainContent
-                    onClicked: {
-                        mainContent.focus = true
-                        if(main.state === 0 || main.state === 2){
-                            main.state = 1
-                            playIcon.visible = false
-                            pauseIcon.visible = true
+
+                Rectangle{
+                    color: Material.color(Material.LightBlue,Material.Shade900)
+                    border.color: "#0066ff"
+                    border.width: 2
+                    radius: 10
+                    anchors.top: trackButtons.bottom
+                    anchors.horizontalCenter: trackButtons.horizontalCenter
+                    width: workDescription.width + 6
+                    height: workDescription.height + 5
+
+                    TextInput{
+                        id: workDescription
+                        anchors.centerIn: parent
+                        width: rect.width/1.5
+                        font.pointSize: 8
+                        text: ""
+                        padding: {
+                            left: 5
+                            right: 5
+                            top: 2
+                            bottom: 2
                         }
-                        else if(main.state === 1){
-                            main.state = 2
-                            playIcon.visible = true
-                            pauseIcon.visible = false
+
+                        onTextEdited: {
+                            settings.setValue("last-work-description",text)
                         }
+
+                        Material.background: "white"
+                        color: "white"
+                        horizontalAlignment: Text.AlignHCenter
+                        readOnly: false
+                        clip: true
+                        y: 20
+
+                        onFocusChanged: {
+                            console.log("focus Changed")
+                            if(focus) horizontalAlignment = Text.AlignHCenter
+                            else horizontalAlignment = Text.AlignLeft
+                        }
+                    }
+                }
+
+                Rectangle{
+                    id: alert
+                    color: '#4d94ff'
+                    width: rect.width/1.5
+                    height: 20
+                    radius: 5
+                    anchors.horizontalCenter: mainContent.horizontalCenter
+                    y: 20
+                    Material.elevation: 15
+                    border.color: "#0066ff"
+                    border.width: 2
+
+                    Behavior on opacity{
+                        NumberAnimation {
+                            target: rect
+                            property: "opacity"
+                            duration: 1000
+                            easing.type: Easing.InOutQuad
+                        }
+                    }
+
+                    Text{
+                        id: alertMsg
+                        anchors.centerIn: parent
+                        padding: 5
+                        width: rect.width/2
+                        font.pointSize: 8
+                        text: "Start Tracking"
+                        Material.background: "white"
+                        color: "white"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        clip: true
+                        font.weight: Font.Bold
                     }
                 }
             }
 
             Item{
-                anchors.left: mainContent.right
-                anchors.verticalCenter: mainContent.verticalCenter
-                width: side.width + 10
-                height: side.height
-                visible: main.state
-                Rectangle{
-                    id:side
-                    height: mainContent.height/2
-                    width: mainContent.width/2
-                    radius: width/2
-                    color: "white"
+                id: secondaryContent
+                anchors.fill: parent
+                visible: !main.active && main.tracked_time
+
+                Text {
+                    id: timeDisplay
+                    text: qsTr(tString)
+                    font.pointSize: 17
                     anchors.centerIn: parent
-
-                    Image{
-                        source: images.stop
-                        height: parent.height
-                        width: parent.width
-                    }
-
-                    MouseArea{
-                        anchors.fill: parent
-                        onClicked: {
-                            main.state = 0
-                        }
-                    }
+                    horizontalAlignment: Text.AlignHCenter
+                    color: "white"
+                    font.weight: 700
+                    style: Text.Outline
+                    styleColor: "blue"
                 }
-            }
 
-            TextInput{
-                id: workDescription
-                anchors.top: mainContent.bottom
-                padding: 5
-                anchors.horizontalCenter: mainContent.horizontalCenter
-                width: rect.width/2
-                font.pointSize: 8
-                text: "Work Item 1"
-                Material.background: "white"
-                color: "white"
-                horizontalAlignment: Text.AlignHCenter
-                readOnly: false
-                maximumLength: 20
-                clip: true
+
+                // Properties Related to Canvas / Progress Bar
+                // This is taken from https://github.com/rafzby/circular-progressbar
+                // -------------------------------------------------------------------
+                property int lineWidth: 10
+                property int animationDuration: 1000
+                property var colorList: ["black","#FE2712","Blue","#f68f29","#b91d47","white","#66f629","#FD3A0F"]
+                property int colorIndex: 0
+                property color primaryColor: "black"
+                property color secondaryColor: "white"
+                Canvas {
+                       id: progressBar
+
+                       property real degree: 0
+                       property int prevProg: 0
+
+                       anchors.fill: parent
+                       antialiasing: true
+
+                       onDegreeChanged: {
+                           requestPaint();
+                       }
+
+                       function nextStep(value){
+                           var s = parseInt(value)
+                           if(s > prevProg){
+//                               console.log("before",secondaryContent.primaryColor,secondaryContent.secondaryColor)
+                               prevProg = s
+                               secondaryContent.colorIndex = (secondaryContent.colorIndex+1)%8
+//                               console.log(secondaryContent.colorIndex," is generated")
+                               secondaryContent.secondaryColor = secondaryContent.primaryColor
+                               secondaryContent.primaryColor = secondaryContent.colorList[secondaryContent.colorIndex]
+//                               console.log("after",secondaryContent.primaryColor,secondaryContent.secondaryColor)
+                           }
+                           value = value - s
+                           progressBar.degree = value * 360
+                       }
+
+                       onPaint: {
+                           var ctx = getContext("2d");
+
+                           var x = secondaryContent.width/2;
+                           var y = secondaryContent.height/2;
+
+                           var radius = mainContent.width/2 - secondaryContent.lineWidth
+                           var startAngle = (Math.PI/180) * 270;
+                           var fullAngle = (Math.PI/180) * (270 + 360);
+                           var progressAngle = (Math.PI/180) * (270 + degree);
+                           //console.log(x,y,radius,startAngle,fullAngle,progressAngle)
+
+                           ctx.reset()
+
+                           ctx.lineCap = 'round';
+                           ctx.lineWidth = secondaryContent.lineWidth;
+
+                           ctx.beginPath();
+                           ctx.arc(x, y, radius, startAngle, fullAngle);
+                           ctx.strokeStyle = secondaryContent.secondaryColor;
+                           ctx.stroke();
+
+                           ctx.beginPath();
+                           ctx.arc(x, y, radius, startAngle, progressAngle);
+                           ctx.strokeStyle = secondaryContent.primaryColor;
+                           ctx.stroke();
+                       }
+
+                       Behavior on degree {
+                           NumberAnimation {
+                               duration: secondaryContent.animationDuration
+                           }
+                       }
+                   }
+
             }
         }
+    }
+
+    Rectangle{
+        color: "transparent"
+        border.width: 1
+        border.color: "white"
+        visible: !main.active
     }
 
     onActiveChanged: {
         if(active){
             showNormal()
-            rect.opacity = 1;
+            rect.opacity = 1
         }else{
             trigger.repeat = true
             rect.opacity = 0.4
         }
-
     }
 
     Timer{
@@ -289,10 +572,35 @@ ApplicationWindow {
         onTriggered: {
             if(rect.opacity === 04) rect.opacity = 0.2;
             else {
-                showMinimized();
+                if(!tracked_time) showMinimized();
                 console.log('App Inactive: Minimizing');
                 repeat = false
             }
+        }
+    }
+
+    Timer{
+        id: tracker
+        interval: 1000
+        repeat: true
+        running: false
+
+        property double v: 0
+        onTriggered:{
+            main.tracked_time += 1
+
+            var m = parseInt(tracked_time/60)
+            var s = tracked_time - m*60
+            var h = parseInt(m/60)
+            m = m - h*60
+
+            tString = (h<10? "0"+h : h) + ":" + (m<10? "0"+m : m) + ":" + (s<10 ? "0"+s : s)
+            alertMsg.text = tString
+
+            if(tracked_time == 1 || tracked_time%20 === 0)
+                progressBar.nextStep((tracked_time%3600)/3600)
+
+            if(tracked_time%60 === 0) insertEnd(tracked_time,workDescription.text)
         }
     }
 

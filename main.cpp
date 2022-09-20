@@ -6,6 +6,10 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
+    app.setApplicationName(QString("Time Tracker"));
+    app.setOrganizationName(QString("GrayAtom"));
+    app.setOrganizationDomain(QString("grayatom.np"));
+
     QQmlApplicationEngine engine;
     const QUrl url(u"qrc:/TimeTracker/main.qml"_qs);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
@@ -14,6 +18,7 @@ int main(int argc, char *argv[])
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
     engine.load(url);
+
 
     return app.exec();
 }
