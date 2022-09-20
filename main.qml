@@ -57,6 +57,8 @@ ApplicationWindow {
 
         database = LocalStorage.openDatabaseSync("TimeTracker", "1.0", "Database used by TimeTracker App to store data", 1000000);
         createDatabase()
+
+        workDescription.text = "Prev: "+settings.value("last-work-description","Work Description")
     }
 
 
@@ -392,6 +394,10 @@ ApplicationWindow {
                             right: 5
                             top: 2
                             bottom: 2
+                        }
+
+                        onTextEdited: {
+                            settings.setValue("last-work-description",text)
                         }
 
                         Material.background: "white"
