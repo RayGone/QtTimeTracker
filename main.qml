@@ -47,7 +47,6 @@ ApplicationWindow {
         var pos = JSON.parse(settings.value("window-position",false))
 
         if(pos){
-            console.log(pos)
             setX(pos.x)
             setY(pos.y)
         }else{
@@ -316,6 +315,7 @@ ApplicationWindow {
                             if(main.state === 0 || main.state === 2){ // Tracking Started
                                 if(main.state === 0){
                                     main.tString = "00:00:00"
+                                    workDescription.text = settings.value("last-work-description","Work Description")
                                     insertStart(workDescription.text)
                                 }
                                 main.state = 1
@@ -406,12 +406,6 @@ ApplicationWindow {
                         readOnly: false
                         clip: true
                         y: 20
-
-                        onFocusChanged: {
-                            console.log("focus Changed")
-                            if(focus) horizontalAlignment = Text.AlignHCenter
-                            else horizontalAlignment = Text.AlignLeft
-                        }
                     }
                 }
 
@@ -476,10 +470,19 @@ ApplicationWindow {
                 // -------------------------------------------------------------------
                 property int lineWidth: 10
                 property int animationDuration: 1000
-                property var colorList: ["black","#FE2712","Blue","#f68f29","#b91d47","white","#66f629","#FD3A0F"]
+                property var colorList: [
+                    Material.color(Material.Grey,Material.Shade900),
+                    Material.color(Material.Grey,Material.Shade100),
+                    Material.color(Material.Green,Material.Shade900),
+                    Material.color(Material.Red,Material.Shade900),
+                    Material.color(Material.DeepPurple,Material.Shade900),
+                    Material.color(Material.Yellow,Material.Shade900),
+                    Material.color(Material.Indigo,Material.Shade900),
+                    Material.color(Material.Lime,Material.Shade900),
+                ]
                 property int colorIndex: 0
-                property color primaryColor: "black"
-                property color secondaryColor: "white"
+                property color primaryColor: colorList[0]
+                property color secondaryColor: colorList[1]
                 Canvas {
                        id: progressBar
 
@@ -496,13 +499,13 @@ ApplicationWindow {
                        function nextStep(value){
                            var s = parseInt(value)
                            if(s > prevProg){
-//                               console.log("before",secondaryContent.primaryColor,secondaryContent.secondaryColor)
+                               //console.log("before",secondaryContent.primaryColor,secondaryContent.secondaryColor)
                                prevProg = s
                                secondaryContent.colorIndex = (secondaryContent.colorIndex+1)%8
-//                               console.log(secondaryContent.colorIndex," is generated")
+                               //console.log(secondaryContent.colorIndex," is generated")
                                secondaryContent.secondaryColor = secondaryContent.primaryColor
                                secondaryContent.primaryColor = secondaryContent.colorList[secondaryContent.colorIndex]
-//                               console.log("after",secondaryContent.primaryColor,secondaryContent.secondaryColor)
+                               //console.log("after",secondaryContent.primaryColor,secondaryContent.secondaryColor)
                            }
                            value = value - s
                            progressBar.degree = value * 360
@@ -599,6 +602,8 @@ ApplicationWindow {
 
             if(tracked_time == 1 || tracked_time%20 === 0)
                 progressBar.nextStep((tracked_time%3600)/3600)
+            //v+=0.1
+            //progressBar.nextStep(v)
 
             if(tracked_time%60 === 0) insertEnd(tracked_time,workDescription.text)
         }
