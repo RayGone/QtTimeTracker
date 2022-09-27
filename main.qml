@@ -117,7 +117,7 @@ ApplicationWindow {
 
     function saveFile(fileUrl, text) {
         var request = new XMLHttpRequest();
-        request.open("PUT", fileUrl, false);
+        request.open("PUT", fileUrl, true);
         request.send(text);
         return request.status;
     }
