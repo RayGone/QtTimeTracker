@@ -6,7 +6,8 @@ import QtQuick.Controls.Material 2.15
 import QtQuick.LocalStorage 2.15
 import QtQuick.Shapes 1.3
 import Qt.labs.settings 1.1
-//import "./Templates"
+import Qt.labs.platform
+import "../Templates"
 
 ApplicationWindow {
     id: main
@@ -25,6 +26,7 @@ ApplicationWindow {
     property int state: 0 //0 means not tracking or stopped; 1 means tracking time; 2 means tracking but currently paused;
     property int tracked_time: 0
     property string tString: "Time Tracker"
+    property real current_track_rowid: -1
 
     QtObject{
         id: images
@@ -69,7 +71,7 @@ ApplicationWindow {
                 tx.executeSql('CREATE TABLE IF NOT EXISTS TimeTracks(trackid INTEGER PRIMARY KEY AUTOINCREMENT, work TEXT, start TIMESTAMP, end TIMESTAMP, tracked_time INTEGER)');
             }
         )
-        console.log('Database Table Created!!')
+        console.log('Database Initialized!!')
     }
 
     function insertStart(work_desc = 'Work Item'){
@@ -77,6 +79,8 @@ ApplicationWindow {
         main.database.transaction(
                     function(tx){
                         tx.executeSql("INSERT INTO TimeTracks(work,start) VALUES (?,strftime('%s'))",[work_desc])
+
+                        tx.executeSql("SELECT last_insert_rowid() as id")
                     })
     }
 
@@ -328,8 +332,8 @@ ApplicationWindow {
                                 playIcon.visible = true
                                 pauseIcon.visible = false
                                 tracker.running = false
+                                insertEnd(main.tracked_time,workDescription.text)
                                 main.tString = "Paused"
-                                alertMsg.text = "Paused"
                             }
                         }
                     }
@@ -411,7 +415,7 @@ ApplicationWindow {
 
                 Rectangle{
                     id: alert
-                    color: '#4d94ff'
+                    color: Material.color(Material.LightBlue,Material.Shade900)
                     width: rect.width/1.5
                     height: 20
                     radius: 5
@@ -592,12 +596,8 @@ ApplicationWindow {
         onTriggered:{
             main.tracked_time += 1
 
-            var m = parseInt(tracked_time/60)
-            var s = tracked_time - m*60
-            var h = parseInt(m/60)
-            m = m - h*60
 
-            tString = (h<10? "0"+h : h) + ":" + (m<10? "0"+m : m) + ":" + (s<10 ? "0"+s : s)
+            tString = computeTrackedReadableTimeString()
             alertMsg.text = tString
 
             if(tracked_time == 1 || tracked_time%20 === 0)
@@ -609,4 +609,23 @@ ApplicationWindow {
         }
     }
 
+    Timer{
+        id: pauseFlash
+        running: main.state === 2
+        repeat: true
+        interval: 3000
+
+        onTriggered: {
+            var tmp = main.tString === "Paused" ? computeTrackedReadableTimeString() : "Paused"
+            alertMsg.text = tString = tmp
+        }
+    }
+
+    function computeTrackedReadableTimeString(){
+        var m = parseInt(tracked_time/60)
+        var s = tracked_time - m*60
+        var h = parseInt(m/60)
+        m = m - h*60
+        return (h<10? "0"+h : h) + ":" + (m<10? "0"+m : m) + ":" + (s<10 ? "0"+s : s)
+    }
 }
