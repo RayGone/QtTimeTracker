@@ -3,9 +3,10 @@ import QtQuick 2.15
 Item{
     id: buttons
 
+    signal displayReportView()
+
     MoveWindow{
         id: moveWindow
-
         width: 20
         height: 20
         radius: width/2
@@ -41,7 +42,11 @@ Item{
         onFileSaved: {
             console.log("File Saved")
             displayStatus.msg = "File Saved!!!"
-            displayStatus.running = true
+            displayStatus.start()
+        }
+
+        onDumpReport: {
+            displayReportView()
         }
 
         Timer{
@@ -59,12 +64,13 @@ Item{
                     console.log("Step 1")
                     alertMsg.text = msg
                     if(repeat) sp = 1
+                    else sp = 0
                 }
 
                 else if(sp === 1){
                     console.log("Step 2")
                     alertMsg.text = "Start Tracking"
-                    running = false
+                    displayStatus.stop()
                     sp = 0
                 }
             }

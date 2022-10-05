@@ -45,13 +45,13 @@ Item{
                     main.state = 1
                     playIcon.visible = false
                     pauseIcon.visible = true
-                    tracker.running = true
+                    tracker.start()
                 }
                 else if(main.state === 1){// Tracking Paused
                     main.state = 2
                     playIcon.visible = true
                     pauseIcon.visible = false
-                    tracker.running = false
+                    tracker.stop()
                     insertEnd(main.tracked_time,workDescription.text)
                     main.tString = "Paused"
                 }
@@ -87,7 +87,7 @@ Item{
                     main.state = 0
                     playIcon.visible = true
                     pauseIcon.visible = false
-                    tracker.running = false
+                    tracker.stop()
                     insertEnd(tracked_time,workDescription.text)
                     main.tracked_time = 0
                     alertMsg.text = "Start Tracking"
