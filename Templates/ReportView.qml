@@ -58,13 +58,37 @@ Window{
                 var rs = tx.executeSql(query)
 
                 tableModel.clear()
-                tableModel.appendRow({work:"Work Description",date:"Date",hours:'Hours',minutes:"Minutes"})
+                tableModel.appendRow({work:"<b>Work Description</b>",date:"<b>Date</b>",hours:'<b>Hours</b>',minutes:"<b>Minutes</b>"})
+
+                var total = 0
                 for(var i=0;i<rs.rows.length;i++){
                     var item = rs.rows.item(i)
-                    item['hours'] = parseInt(item['minutes']/60)
+                    total += parseInt(item['minutes'])
+                    item['hours'] = parseInt(parseInt(item['minutes'])/60)
                     item['minutes'] = item['minutes'] - item['hours']*60
                     tableModel.appendRow(item)
                 }
+
+                var summary_string = ""
+                if(rs.rows.length > 0){
+                    var from = rs.rows.item(0)['date']
+                    var to = rs.rows.item(rs.rows.length-1)['date']
+
+                    summary_string =      "Showing Log From&nbsp;&nbsp;&nbsp;: <b><i><u>"+from+"</u></i></b> to : <b><i><u>"+ to+"</u></i></b>"
+                    summary_string += "<br>Total Worked Hours&nbsp;: <b><i><u>"+parseInt(total/60)+"hr"+" "+(total%60)+"min</u></i></b>"
+
+                    console.log(parseInt(total/60)+"hr"+" "+(total%60)+"min")
+                }else{
+                    summary_string = "No logs to show.
+                            Start tracking."
+
+                    tableModel.appendRow({work:"-",date:"-",hours:'-',minutes:"-"})
+                    tableModel.appendRow({work:"-",date:"-",hours:'-',minutes:"-"})
+                    tableModel.appendRow({work:"-",date:"-",hours:'-',minutes:"-"})
+                    tableModel.appendRow({work:"-",date:"-",hours:'-',minutes:"-"})
+                }
+
+                logsummary.text = summary_string
             })
     }
 
@@ -227,6 +251,53 @@ Window{
                     height: parent.height/3
                     width: parent.width
                     color: Material.color(Material.Blue,Material.Shade700)
+
+                    Row{
+                        anchors.fill: parent
+                        spacing: 5
+
+                        Item{
+                            height: 10
+                            width: 10
+                        }
+
+                        Column{
+                            height: parent.height
+                            width: parent.width * 0.4
+
+                            spacing: 2
+
+                            Text{
+                                text: "Summary:"
+                                color: "white"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                elide: Text.ElideRight
+                                font.bold: true
+                                style: Text.Sunken
+                                styleColor: "green"
+                                textFormat: Text.StyledText
+                            }
+
+                            Text{
+                                id: logsummary
+                                text: "Showing Data From A to B <br> Total Hours: X hours"
+                                color: "white"
+                                horizontalAlignment: Text.AlignLeft
+                                verticalAlignment: Text.AlignVCenter
+                                elide: Text.ElideRight
+                                style: Text.Sunken
+                                styleColor: "green"
+                                textFormat: Text.StyledText
+                            }
+
+                        }
+
+                        ToolSeparator{
+                            orientation: Qt.Vertical
+                            height: parent.height
+                        }
+                    }
                 }
 
                 RoundButton{
@@ -255,6 +326,8 @@ Window{
             height: parent.height * 0.65
             model: tableModel
             clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            ScrollBar.vertical: ScrollBar{}
 
             delegate: Rectangle {
                 implicitWidth: reportView.width/4
@@ -265,6 +338,10 @@ Window{
                 Text {
                     text: display
                     anchors.centerIn: parent
+                    color: "white"
+                    style: Text.Raised
+                    styleColor: "green"
+                    textFormat: Text.StyledText
                     //font.weight: display === 'header' ? font.Bold : font.Normal
                 }
             }
