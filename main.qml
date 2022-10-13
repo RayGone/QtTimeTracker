@@ -177,7 +177,7 @@ ApplicationWindow {
             body.opacity = 1
         }else{
             trigger.repeat = true
-            body.opacity = 0.4
+            body.opacity = 0.3
 
             if(main.state){
                 secondaryContent.visible = true

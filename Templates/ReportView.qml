@@ -49,9 +49,9 @@ Window{
             function(tx){
                 // var rs = tx.executeSql("SELECT trackid as SN,work as Work_Description, date(datetime(datetime(start,'unixepoch'),'localtime')) as Started_At, date(datetime(datetime(end,'unixepoch'),'localtime')) as Ended_At, tracked_time as Tracked_Seconds FROM TimeTracks")
                 var query = "
-                    SELECT work, date(datetime(datetime(start,'unixepoch'),'localtime')) as date, sum(tracked_time)/60 as minutes
+                    SELECT work, date(datetime(datetime(start,'unixepoch'),'localtime')) as date, sum(CAST(tracked_time AS REAL))/60 as minutes
                     FROM TimeTracks
-                    WHERE datetime(datetime(start,'unixepoch'),'localtime') > datetime('now','-14 day','localtime')
+                    WHERE datetime(datetime(start,'unixepoch'),'localtime') > datetime('now','start of day','-13 day','localtime')
                     GROUP BY work, date(datetime(datetime(start,'unixepoch'),'localtime'))
                     ORDER BY start
                 ";
@@ -63,9 +63,9 @@ Window{
                 var total = 0
                 for(var i=0;i<rs.rows.length;i++){
                     var item = rs.rows.item(i)
-                    total += parseInt(item['minutes'])
-                    item['hours'] = parseInt(parseInt(item['minutes'])/60)
-                    item['minutes'] = item['minutes'] - item['hours']*60
+                    total += parseInt(Math.ceil(item['minutes']))
+                    item['hours'] = parseInt(parseInt(Math.ceil(item['minutes']))/60)
+                    item['minutes'] = parseInt(Math.ceil(item['minutes']) - item['hours']*60)
                     tableModel.appendRow(item)
                 }
 
@@ -228,12 +228,49 @@ Window{
                             }
 
                             onClicked: {
+                                var date = new Date()
+                                var today = date.getFullYear()+""+(date.getMonth()<9?"0"+(date.getMonth()+1):(date.getMonth()+1))+""+(date.getDate()<=9?"0"+date.getDate():date.getDate())
+
                                 var csv_string = ""
+                                var th = 0
+                                var tm = 0
                                 for(var i=0;i<tableModel.rowCount;i++){
                                     csv_string +=  Object.values(tableModel.getRow(i)).join(",") + "\n"
+                                    if(i>0){
+                                        th += parseInt(tableModel.getRow(i)["hours"])
+                                        tm += parseInt(tableModel.getRow(i)["minutes"])
+                                    }
                                 }
-                                var filename = main.settings.value('report-dump-locaton',"file:///D:") + "/Work Log.csv"
-                                saveFile(filename,csv_string)
+
+                                csv_string = csv_string.split("<b>").join("")
+                                csv_string = csv_string.split("</b>").join("")
+
+                                th += parseInt(tm/60)
+                                tm -= (parseInt(tm/60)*60)
+                                csv_string += "Total: ,"+th+"hr "+tm+"min,,"
+
+                                var filename = main.settings.value('report-dump-locaton',"file:///D:") + "/Work_Log_"+today+".csv"
+                                try{
+                                    saveFile(filename,csv_string,displayState)
+                                }catch(e){
+                                    console.log(e,"--")
+                                }
+                            }
+
+                            function displayState(){
+                                tr.start()
+                                path.text = "File Saved Successfully!!!"
+                            }
+
+                            Timer{
+                                id: tr
+                                repeat: false
+                                interval: 3000
+
+                                property string str: ""
+                                onTriggered: {
+                                    path.text = main.settings.value('report-dump-locaton',"file:///D:").replace("file:///","")
+                                }
                             }
                         }
                     }
@@ -349,10 +386,16 @@ Window{
 
     }
 
-    function saveFile(fileUrl, text) {
+    function saveFile(fileUrl, text, callback) {
         var request = new XMLHttpRequest();
         request.open("PUT", fileUrl, true);
+        request.onreadystatechange = function(){
+            if(request.readyState == request.DONE){
+                callback()
+            }
+        }
         request.send(text);
+
         return request.status;
     }
 }

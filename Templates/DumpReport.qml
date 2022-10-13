@@ -15,7 +15,7 @@ Rectangle{
     border.width: 3
     clip: true
 
-    property string dumpLocation: main.settings.value("report-dump-locaton","file:///D:/")
+    property string dumpLocation: main.settings.value("report-dump-locaton","file:///D:")
     property string imgSrc: ""
 
     signal dumpReport()
@@ -48,7 +48,7 @@ Rectangle{
             function(tx){
                 // var rs = tx.executeSql("SELECT trackid as SN,work as Work_Description, date(datetime(datetime(start,'unixepoch'),'localtime')) as Started_At, date(datetime(datetime(end,'unixepoch'),'localtime')) as Ended_At, tracked_time as Tracked_Seconds FROM TimeTracks")
                 var query = "
-                    SELECT work as Work_Description, date(datetime(datetime(start,'unixepoch'),'localtime')) as Work_Date, sum(tracked_time)/60 as Worked_Minutes
+                    SELECT work as Work_Description, date(datetime(datetime(start,'unixepoch'),'localtime')) as Work_Date, sum(CAST(tracked_time AS REAL))/60 as Worked_Minutes
                     FROM TimeTracks
                     GROUP BY Work_Description, date(datetime(datetime(start,'unixepoch'),'localtime'))
                     ORDER BY start
@@ -64,7 +64,7 @@ Rectangle{
                 }
                 console.log(csv_string)
 
-                var filename = report.dumpLocation+"Time_Track_Log.csv"
+                var filename = report.dumpLocation+"/Time_Track_Log.csv"
                 try{
                     saveFile(filename,csv_string)
                 }
