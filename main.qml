@@ -12,13 +12,14 @@ ApplicationWindow {
     id: main
     width: 150
     height: 150
+
     maximumHeight: height
     maximumWidth: width
     minimumHeight: height
     minimumWidth: width
     visible: true
     title: qsTr("Time Tracker")
-    flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    flags: Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint
     color: "transparent"
 
     property var database
@@ -38,6 +39,10 @@ ApplicationWindow {
 
     Images{
         id: images
+    }
+
+    onScreenChanged: {
+        console.log(Screen.pixelDensity)
     }
 
     Component.onCompleted: {
@@ -95,20 +100,34 @@ ApplicationWindow {
         insertEnd(tracked_time,workDescription.text)
     }
 
+    /*
+      -------------------------------------------------------
+      -----------------Visible Items Start-------------------
+      -------------------------------------------------------
+     */
+
+    ReportView{
+        id: reportview
+    }
+
     WindowPeripheral{
         id: buttons
 
         width: main.width
         height: main.height
         visible: active
-    }
 
+        onDisplayReportView: {
+            reportview.visible = !reportview.visible
+        }
+    }
 
     TemplateBody{
         id: body
 
         width: main.width
         height: main.height
+        anchors.centerIn: parent
         radius: width/2
 
         Main{
@@ -146,7 +165,11 @@ ApplicationWindow {
         }
     }
 
-
+    /*
+      -------------------------------------------------------
+      -----------------Visible Items End---------------------
+      -------------------------------------------------------
+     */
 
     onActiveChanged: {
         if(active){
@@ -154,7 +177,7 @@ ApplicationWindow {
             body.opacity = 1
         }else{
             trigger.repeat = true
-            body.opacity = 0.4
+            body.opacity = 0.3
 
             if(main.state){
                 secondaryContent.visible = true

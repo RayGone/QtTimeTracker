@@ -17,5 +17,6 @@
         <file>templates/TemplateBody.qml</file>
         <file>templates/TrackerDisplay.qml</file>
         <file>templates/WindowPeripheral.qml</file>
+        <file>templates/ReportView.qml</file>
     </qresource>
 </RCC>

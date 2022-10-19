@@ -20,4 +20,15 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
+    templates/CloseWindow.qml \
+    templates/DumpReport.qml \
+    templates/Images.qml \
+    templates/Main.qml \
+    templates/MinimizeWindow.qml \
+    templates/MoveWindow.qml \
+    templates/Random.qml \
+    templates/ReportView.qml \
+    templates/TemplateBody.qml \
+    templates/TrackerDisplay.qml \
+    templates/WindowPeripheral.qml
 
