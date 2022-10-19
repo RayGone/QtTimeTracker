@@ -17,6 +17,8 @@ Window{
     minimumHeight: height
     minimumWidth: width
 
+    property bool groupby: false
+
     function setWindowPosition(){
         if(main.x - width > 10)
             setX(main.x - width)
@@ -44,18 +46,19 @@ Window{
         color: Material.color(Material.Blue,Material.Shade600)
     }
 
-    function defaultData(){
+    function filterByDate(limit=14){
         main.database.transaction(
             function(tx){
                 // var rs = tx.executeSql("SELECT trackid as SN,work as Work_Description, date(datetime(datetime(start,'unixepoch'),'localtime')) as Started_At, date(datetime(datetime(end,'unixepoch'),'localtime')) as Ended_At, tracked_time as Tracked_Seconds FROM TimeTracks")
                 var query = "
                     SELECT work, date(datetime(datetime(start,'unixepoch'),'localtime')) as date, sum(CAST(tracked_time AS REAL))/60 as minutes
                     FROM TimeTracks
-                    WHERE datetime(datetime(start,'unixepoch'),'localtime') > datetime('now','start of day','-13 day','localtime')
+                    WHERE datetime(datetime(start,'unixepoch'),'localtime') > datetime('now','start of day',?,'localtime')
                     GROUP BY work, date(datetime(datetime(start,'unixepoch'),'localtime'))
                     ORDER BY start
                 ";
-                var rs = tx.executeSql(query)
+                limit = "-"+(limit-1)+" day"
+                var rs = tx.executeSql(query,[limit])
 
                 tableModel.clear()
                 tableModel.appendRow({work:"<b>Work Description</b>",date:"<b>Date</b>",hours:'<b>Hours</b>',minutes:"<b>Minutes</b>"})
@@ -89,7 +92,12 @@ Window{
                 }
 
                 logsummary.text = summary_string
-            })
+            });
+
+    }
+
+    function defaultData(){
+        filterByDate()
     }
 
     FolderDialog{
@@ -290,7 +298,8 @@ Window{
                     color: Material.color(Material.Blue,Material.Shade700)
 
                     Row{
-                        anchors.fill: parent
+                        width: parent.width
+                        height: parent.height
                         spacing: 5
 
                         Item{
@@ -324,7 +333,7 @@ Window{
                                 verticalAlignment: Text.AlignVCenter
                                 elide: Text.ElideRight
                                 style: Text.Sunken
-                                styleColor: "green"
+                                styleColor: "black"
                                 textFormat: Text.StyledText
                             }
 
@@ -334,11 +343,171 @@ Window{
                             orientation: Qt.Vertical
                             height: parent.height
                         }
+
+
+                        Column{
+                            height: parent.height
+                            width: parent.width * 0.5
+
+                            spacing: 2
+
+                            Row{
+                                width: parent.width
+                                height: parent.height * 0.334
+                                spacing: 5
+
+                                Text{
+                                    text: "Group By: "
+                                    color: "white"
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                    style: Text.Sunken
+                                    styleColor: "black"
+                                    textFormat: Text.StyledText
+                                    font.bold: true
+                                }
+
+                                Rectangle{
+                                    color:"gray"
+                                    width: wdFilterLabel.width + 15
+                                    height: parent.height
+                                    border.color: Material.color(Material.Blue,Material.Shade900)
+                                    border.width: 1
+                                    radius: 5
+                                    Text{
+                                        id: wdFilterLabel
+                                        text: "Work Description"
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                        elide: Text.ElideRight
+                                        style: Text.Sunken
+                                        styleColor: "black"
+                                        textFormat: Text.StyledText
+                                        anchors.centerIn:  parent
+                                        color:'white'
+                                        font.pixelSize: 10
+                                    }
+
+
+                                    MouseArea{
+                                        anchors.fill: parent
+                                        onClicked: {
+                                            if(!groupby){
+                                                wdFilterLabel.parent.border.color = 'white'
+                                                wdFilterLabel.parent.color = 'green'
+                                            }else{
+                                                wdFilterLabel.parent.border.color = Material.color(Material.Blue,Material.Shade900)
+                                                wdFilterLabel.parent.color = 'gray'
+                                            }
+                                            groupby = !groupby
+                                        }
+                                    }
+                                }
+                            }
+
+                            Row{
+                                width: parent.width
+                                height: parent.height * 0.666
+
+                                Text{
+                                    text: "Show log of "
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                    style: Text.Sunken
+                                    styleColor: "black"
+                                    textFormat: Text.StyledText
+                                    color:'white'
+                                    font.bold: true
+                                }
+
+                                Item{
+                                    width: 10
+                                    height: 10
+                                }
+
+                                Rectangle{
+                                    height: dayLimit.height + 5
+                                    width: dayLimit.width + 10
+                                    border.color: "black"
+
+                                    TextInput{
+                                        id: dayLimit
+                                        inputMethodHints: Qt.ImhPreferNumbers | Qt.ImhNoPredictiveText
+                                        text: "14"
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                        font.pixelSize: 12
+                                        font.bold: true
+                                        width: 36
+                                        clip: true
+                                        renderType: TextInput.NativeRendering
+                                        anchors.centerIn: parent
+                                        color: 'black'
+                                    }
+
+                                }
+
+                                Item{
+                                    width: 10
+                                    height: 10
+                                }
+
+                                Text{
+                                    text: "days"
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                    style: Text.Sunken
+                                    styleColor: "black"
+                                    textFormat: Text.StyledText
+                                    color:'white'
+                                    font.bold: true
+                                }
+
+                                Item{
+                                    width: 40
+                                    height: 10
+                                }
+
+                                Button{
+                                    id: filterBtn
+                                    text: "Filter"
+                                    Material.accent: Material.color(Material.Blue,Material.Shade700)
+                                    Material.background: Material.color(Material.Blue,Material.Shade900)
+                                    height: 35
+                                    width: 90
+
+                                    contentItem: Text{
+                                        text: parent.text
+                                        color: "white"
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                        elide: Text.ElideRight
+                                        font.bold: true
+                                    }
+
+                                    onClicked: {
+                                        if(dayLimit.text.length == 0) {
+                                            dayLimit.text = '14'
+                                        }
+                                        var limit = parseInt(dayLimit.text)
+                                        if(limit<0) limit *= -1
+                                        if(limit===0) limit = 1
+
+                                        dayLimit.text = limit
+                                        filterByDate(limit)
+                                    }
+                                }
+                            }
+                        }
+
                     }
                 }
 
                 RoundButton{
-                    text: "heelo"
+                    text: "hello"
                     height: 20
                     width: 20
                     radius: 10
@@ -377,7 +546,7 @@ Window{
                     anchors.centerIn: parent
                     color: "white"
                     style: Text.Raised
-                    styleColor: "green"
+                    styleColor: "black"
                     textFormat: Text.StyledText
                     //font.weight: display === 'header' ? font.Bold : font.Normal
                 }
