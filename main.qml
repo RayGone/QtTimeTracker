@@ -1,26 +1,34 @@
+import QtCore
+import QtQml 2.12
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.LocalStorage 2.15
-import Qt.labs.settings 1.1
+
+//import Qt.labs.settings 1.1
 import Qt.labs.platform
-import "../templates"
+import "qrc:/Templates"
+import "qrc:/Templates/MainWindow"
+import "qrc:/SQL"
+import "qrc:/Icons"
 
 ApplicationWindow {
-    id: main
-    width: 150
-    height: 150
+    id: app
 
-    maximumHeight: height
-    maximumWidth: width
-    minimumHeight: height
-    minimumWidth: width
+    width: 350 * scaleFactor
+    height: 450 * scaleFactor
+
+    minimumWidth: 350 * scaleFactor
+    minimumHeight: 450 * scaleFactor
+
     visible: true
     title: qsTr("Time Tracker")
-    flags: Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint
+    //flags: Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint
     color: "transparent"
+
+    property real scaleFactor: Screen.devicePixelRatio/2
 
     property var database
     property int state: 0 //0 means not tracking or stopped; 1 means tracking time; 2 means tracking but currently paused;
@@ -28,10 +36,16 @@ ApplicationWindow {
     property string tString: "Time Tracker"
     property real current_track_rowid: -1
 
+    readonly property alias db: db
     property alias settings: settings    
-    readonly property alias trackerProgress: secondaryContent.progressBar
-    readonly property alias workDescription: mainContent.workDescription
-    readonly property alias alertMsg: mainContent.alertMsg
+//    readonly property alias trackerProgress: secondaryContent.progressBar
+//    readonly property alias workDescription: appContent.workDescription
+//    readonly property alias alertMsg: mainContent.alertMsg
+
+    property bool appClosed: false
+
+    readonly property string fontFamily: 'Helvetica'
+    property string primaryColor: Material.color(Material.LightBlue,Material.Shade900)
 
     Settings{
         id: settings
@@ -41,63 +55,38 @@ ApplicationWindow {
         id: images
     }
 
-    onScreenChanged: {
-        console.log(Screen.pixelDensity)
+    onClosing: {
+        appClosed = true
     }
 
     Component.onCompleted: {
-        //console.log(Screen.width,Screen.height)
-        var pos = JSON.parse(settings.value("window-position",false))
+           console.log(app.scaleFactor,height,width)
 
-        if(pos){
-            setX(pos.x)
-            setY(pos.y)
-        }else{
-            setX(Screen.width - (width+20))
-            setY(Screen.height - height*1.5)
+//        var pos = JSON.parse(settings.value("window-position",false))
+
+//        if(pos){
+//            setX(pos.x)
+//            setY(pos.y)
+//        }else{
+//            setX(Screen.width - (width+20))
+//            setY(Screen.height - height*1.5)
+//        }
+
+        database = LocalStorage.openDatabaseSync("TimeTrackerV2", "1.0", "Database used by TimeTracker App to store data", 1000000);
+        db.createDatabase()
+
+        //workDescription.text = settings.value("last-work-description",false) ? "Prev: "+settings.value("last-work-description") : "Work Description"
+    }
+
+
+
+    function showMainWindow(){
+        if(appClosed){
+            app.show()
+            app.raise()
+            app.requestActivate()
+            appClosed = !appClosed
         }
-
-        database = LocalStorage.openDatabaseSync("TimeTracker", "1.0", "Database used by TimeTracker App to store data", 1000000);
-        createDatabase()
-
-        workDescription.text = settings.value("last-work-description",false) ? "Prev: "+settings.value("last-work-description") : "Work Description"
-    }
-
-
-    function createDatabase(){
-        main.database.transaction(
-            function(tx) {
-                // Create the database if it doesn't already exist
-                //tx.executeSql('DROP TABLE TimeTracks')
-                tx.executeSql('CREATE TABLE IF NOT EXISTS TimeTracks(trackid INTEGER PRIMARY KEY AUTOINCREMENT, work TEXT, start TIMESTAMP, end TIMESTAMP, tracked_time INTEGER)');
-            }
-        )
-        console.log('Database Initialized!!')
-    }
-
-    function insertStart(work_desc = 'Work Item'){
-        if(!work_desc) work_desc = "Work Item"
-        main.database.transaction(
-                    function(tx){
-                        tx.executeSql("INSERT INTO TimeTracks(work,start,end,tracked_time) VALUES (?,strftime('%s'),strftime('%s'),0)",[work_desc])
-
-                        tx.executeSql("SELECT last_insert_rowid() as id")
-                    })
-    }
-
-    function insertEnd(tracked_time = 1,work_desc){
-        main.database.transaction(
-                    function(tx){
-                        var rs = tx.executeSql("SELECT trackid FROM TimeTracks ORDER BY trackid DESC LIMIT 1")
-                        var id = rs.rows.item(0)['trackid']
-
-                        tx.executeSql("UPDATE TimeTracks SET tracked_time = ?, work = ?, end = strftime('%s') WHERE trackid=?",[tracked_time,work_desc,id])
-                    })
-    }
-
-    function saveTimeBeforeClose(){
-        if(tracked_time)
-        insertEnd(tracked_time,workDescription.text)
     }
 
     /*
@@ -106,64 +95,85 @@ ApplicationWindow {
       -------------------------------------------------------
      */
 
-    ReportView{
-        id: reportview
+    StackView{
+        id: view
+
+        initialItem: mainPage
+        anchors.fill: parent
     }
 
-    WindowPeripheral{
-        id: buttons
-
-        width: main.width
-        height: main.height
-        visible: active
-
-        onDisplayReportView: {
-            reportview.visible = !reportview.visible
-        }
-    }
-
-    TemplateBody{
-        id: body
-
-        width: main.width
-        height: main.height
-        anchors.centerIn: parent
-        radius: width/2
-
-        Main{
-            id: mainContent
+    Component{
+        id: mainPage
+        MainWindow{
             anchors.fill: parent
-            visible: !secondaryContent.visible
-        }
-
-        TrackerDisplay{
-            id: secondaryContent
-
-            diameter: mainContent.width
-            visible: false
-
-            MouseArea{
-                anchors.fill: parent
-
-                onClicked: {
-                    secondaryContent.visible = false
-                }
-            }
-
-            property int lineWidth: 10
-            property int animationDuration: 1000
-            property var colorList: [
-                Material.color(Material.Grey,Material.Shade900),
-                Material.color(Material.Grey,Material.Shade100),
-                Material.color(Material.Green,Material.Shade900),
-                Material.color(Material.Red,Material.Shade900),
-                Material.color(Material.DeepPurple,Material.Shade900),
-                Material.color(Material.Yellow,Material.Shade900),
-                Material.color(Material.Indigo,Material.Shade900),
-                Material.color(Material.Lime,Material.Shade900),
-            ]
         }
     }
+
+    Component{
+        id: reportPage
+
+        ReportView{
+        }
+    }
+
+
+
+
+//    TemplateBody{
+//        id: trackerWindow
+//        visible: false
+//        width: app.width
+//        height: app.height
+//        anchors.centerIn: parent
+//        radius: width/2
+
+//        TrackerFunctions{
+//            id: mainContent
+//            anchors.fill: parent
+//            visible: !secondaryContent.visible
+//        }
+
+
+//        WindowPeripheral{
+//            id: buttons
+
+//            width: app.width
+//            height: app.height
+//            visible: active
+
+//            onDisplayReportView: {
+//                reportview.visible = !reportview.visible
+//            }
+//        }
+
+//        TrackerDisplay{
+//            id: secondaryContent
+
+//            diameter: mainContent.width
+//            visible: false
+
+//            MouseArea{
+//                anchors.fill: parent
+
+//                onClicked: {
+//                    secondaryContent.visible = false
+//                }
+//            }
+
+//            property int lineWidth: 10
+//            property int animationDuration: 1000
+//            property var colorList: [
+//                Material.color(Material.Grey,Material.Shade900),
+//                Material.color(Material.Grey,Material.Shade100),
+//                Material.color(Material.Green,Material.Shade900),
+//                Material.color(Material.Red,Material.Shade900),
+//                Material.color(Material.DeepPurple,Material.Shade900),
+//                Material.color(Material.Yellow,Material.Shade900),
+//                Material.color(Material.Indigo,Material.Shade900),
+//                Material.color(Material.Lime,Material.Shade900),
+//            ]
+//        }
+//    }
 
     /*
       -------------------------------------------------------
@@ -171,19 +181,24 @@ ApplicationWindow {
       -------------------------------------------------------
      */
 
-    onActiveChanged: {
-        if(active){
-            showNormal()
-            body.opacity = 1
-        }else{
-            trigger.repeat = true
-            body.opacity = 0.3
 
-            if(main.state){
-                secondaryContent.visible = true
-            }
-        }
+    Database{
+        id: db
     }
+
+//    onActiveChanged: {
+//        if(active){
+//            showNormal()
+//            trackerWindow.opacity = 1
+//        }else{
+//            trigger.repeat = true
+//            trackerWindow.opacity = 0.3
+
+//            if(app.state){
+//                secondaryContent.visible = true
+//            }
+//        }
+//    }
 
     Timer{
         id: trigger
@@ -191,7 +206,7 @@ ApplicationWindow {
         interval: 120000
         repeat: true
         onTriggered: {
-            if(body.opacity === 04) body.opacity = 0.2;
+            if(trackerWindow.opacity === 0.4) trackerWindow.opacity = 0.2;
             else {
                 if(!tracked_time) showMinimized();
                 console.log('App Inactive: Minimizing');
@@ -208,7 +223,7 @@ ApplicationWindow {
 
         property double v: 0
         onTriggered:{
-            main.tracked_time += 1
+            app.tracked_time += 1
 
 
             tString = computeTrackedReadableTimeString()
@@ -225,12 +240,12 @@ ApplicationWindow {
 
     Timer{
         id: pauseFlash
-        running: main.state === 2
+        running: app.state === 2
         repeat: true
         interval: 3000
 
         onTriggered: {
-            var tmp = main.tString === "Paused" ? computeTrackedReadableTimeString() : "Paused"
+            var tmp = app.tString === "Paused" ? computeTrackedReadableTimeString() : "Paused"
             alertMsg.text = tString = tmp
         }
     }
@@ -241,5 +256,58 @@ ApplicationWindow {
         var h = parseInt(m/60)
         m = m - h*60
         return (h<10? "0"+h : h) + ":" + (m<10? "0"+m : m) + ":" + (s<10 ? "0"+s : s)
+    }
+
+
+
+    //-----------
+    // System Tray Icon
+    //-------------
+
+    SystemTrayIcon {
+        id: systemTrayIcon
+        visible: true
+        icon.mask: true
+        icon.source: "qrc:/clock-vector.ico"
+        tooltip: "TimeTracker"
+        menu: Menu {
+                id: systemTrayMenu
+                Material.background: Material.color(Material.Grey,Material.Shade100)
+
+                MenuItem{
+                    text: qsTr("Open")
+                    visible: appClosed
+                    //shortcut: StandardKey.Open
+                    onTriggered: {
+                        showMainWindow()
+                    }
+                }
+
+                MenuSeparator{
+                    visible: appClosed
+                }
+
+                //                MenuItem{
+                //                    visible: !appClosed
+                //                    text: qsTr("Close")
+                //                    //shortcut: StandardKey.Cancel
+                //                    onTriggered: {
+                //                        app.close()
+                //                    }
+                //                }
+
+                //                MenuSeparator{
+                //                    visible: !appClosed
+                //                }
+
+                MenuItem{
+                    text: qsTr("Quit")
+                    shortcut: StandardKey.Close
+                    role: MenuItem.QuitRole
+                    onTriggered: {
+                        Qt.quit()
+                    }
+                }
+            }
     }
 }

@@ -8,7 +8,10 @@ int main(int argc, char *argv[])
 
     app.setApplicationName(QString("Time Tracker"));
     app.setOrganizationName(QString("GrayAtom"));
-    app.setOrganizationDomain(QString("grayatom.np"));
+    app.setOrganizationDomain(QString("grayatom.com"));
+
+    //For Implementing System Tray Icon
+    app.setQuitOnLastWindowClosed(false);
 
     QQmlApplicationEngine engine;
     const QUrl url(u"qrc:/TimeTracker/main.qml"_qs);

@@ -7,17 +7,18 @@ import QtQuick.Shapes 1.3
 import Qt.labs.platform
 
 
-Window{
+Page{
     id: reportView
 
-    width: main.width * 4.5
-    height: main.height * 3
-    maximumHeight: height
-    maximumWidth: width
-    minimumHeight: height
-    minimumWidth: width
+//    width: main.width * 4.5
+//    height: main.height * 3
+//    maximumHeight: height
+//    maximumWidth: width
+//    minimumHeight: height
+//    minimumWidth: width
+//    flags: Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint
 
-    property bool groupby: false
+    property bool groupby: main.settings.value("filter-groupby",false)
 
     function setWindowPosition(){
         if(main.x - width > 10)
@@ -46,58 +47,12 @@ Window{
         color: Material.color(Material.Blue,Material.Shade600)
     }
 
-    function filterByDate(limit=14){
-        main.database.transaction(
-            function(tx){
-                // var rs = tx.executeSql("SELECT trackid as SN,work as Work_Description, date(datetime(datetime(start,'unixepoch'),'localtime')) as Started_At, date(datetime(datetime(end,'unixepoch'),'localtime')) as Ended_At, tracked_time as Tracked_Seconds FROM TimeTracks")
-                var query = "
-                    SELECT work, date(datetime(datetime(start,'unixepoch'),'localtime')) as date, sum(CAST(tracked_time AS REAL))/60 as minutes
-                    FROM TimeTracks
-                    WHERE datetime(datetime(start,'unixepoch'),'localtime') > datetime('now','start of day',?,'localtime')
-                    GROUP BY work, date(datetime(datetime(start,'unixepoch'),'localtime'))
-                    ORDER BY start
-                ";
-                limit = "-"+(limit-1)+" day"
-                var rs = tx.executeSql(query,[limit])
-
-                tableModel.clear()
-                tableModel.appendRow({work:"<b>Work Description</b>",date:"<b>Date</b>",hours:'<b>Hours</b>',minutes:"<b>Minutes</b>"})
-
-                var total = 0
-                for(var i=0;i<rs.rows.length;i++){
-                    var item = rs.rows.item(i)
-                    total += parseInt(Math.ceil(item['minutes']))
-                    item['hours'] = parseInt(parseInt(Math.ceil(item['minutes']))/60)
-                    item['minutes'] = parseInt(Math.ceil(item['minutes']) - item['hours']*60)
-                    tableModel.appendRow(item)
-                }
-
-                var summary_string = ""
-                if(rs.rows.length > 0){
-                    var from = rs.rows.item(0)['date']
-                    var to = rs.rows.item(rs.rows.length-1)['date']
-
-                    summary_string =      "Showing Log From&nbsp;&nbsp;&nbsp;: <b><i><u>"+from+"</u></i></b> to : <b><i><u>"+ to+"</u></i></b>"
-                    summary_string += "<br>Total Worked Hours&nbsp;: <b><i><u>"+parseInt(total/60)+"hr"+" "+(total%60)+"min</u></i></b>"
-
-                    console.log(parseInt(total/60)+"hr"+" "+(total%60)+"min")
-                }else{
-                    summary_string = "No logs to show.
-                            Start tracking."
-
-                    tableModel.appendRow({work:"-",date:"-",hours:'-',minutes:"-"})
-                    tableModel.appendRow({work:"-",date:"-",hours:'-',minutes:"-"})
-                    tableModel.appendRow({work:"-",date:"-",hours:'-',minutes:"-"})
-                    tableModel.appendRow({work:"-",date:"-",hours:'-',minutes:"-"})
-                }
-
-                logsummary.text = summary_string
-            });
-
-    }
 
     function defaultData(){
-        filterByDate()
+        if(groupby)
+            main.db.filterByWork_Date(main.settings.value("filter-limit",'14'))
+        else
+            main.db.filterByDate(main.settings.value("filter-limit",'14'))
     }
 
     FolderDialog{
@@ -118,7 +73,6 @@ Window{
 
     TableModel {
         id: tableModel
-
         TableModelColumn { display: "work" }
         TableModelColumn { display: "date" }
         TableModelColumn { display: "hours" }
@@ -369,10 +323,10 @@ Window{
                                 }
 
                                 Rectangle{
-                                    color:"gray"
+                                    color: groupby ? 'green' : "gray"
                                     width: wdFilterLabel.width + 15
                                     height: parent.height
-                                    border.color: Material.color(Material.Blue,Material.Shade900)
+                                    border.color: groupby ? 'white' : Material.color(Material.Blue,Material.Shade900)
                                     border.width: 1
                                     radius: 5
                                     Text{
@@ -393,14 +347,8 @@ Window{
                                     MouseArea{
                                         anchors.fill: parent
                                         onClicked: {
-                                            if(!groupby){
-                                                wdFilterLabel.parent.border.color = 'white'
-                                                wdFilterLabel.parent.color = 'green'
-                                            }else{
-                                                wdFilterLabel.parent.border.color = Material.color(Material.Blue,Material.Shade900)
-                                                wdFilterLabel.parent.color = 'gray'
-                                            }
                                             groupby = !groupby
+                                            main.settings.setValue("filter-groupby",groupby)
                                         }
                                     }
                                 }
@@ -435,7 +383,7 @@ Window{
                                     TextInput{
                                         id: dayLimit
                                         inputMethodHints: Qt.ImhPreferNumbers | Qt.ImhNoPredictiveText
-                                        text: "14"
+                                        text: main.settings.value("filter-limit",'14')
                                         horizontalAlignment: Text.AlignHCenter
                                         verticalAlignment: Text.AlignVCenter
                                         font.pixelSize: 12
@@ -445,6 +393,7 @@ Window{
                                         renderType: TextInput.NativeRendering
                                         anchors.centerIn: parent
                                         color: 'black'
+                                        validator: IntValidator{bottom: 1; top: 99999;}
                                     }
 
                                 }
@@ -495,9 +444,10 @@ Window{
                                         var limit = parseInt(dayLimit.text)
                                         if(limit<0) limit *= -1
                                         if(limit===0) limit = 1
-
                                         dayLimit.text = limit
-                                        filterByDate(limit)
+
+                                        main.settings.setValue("filter-limit",limit)
+                                        defaultData()
                                     }
                                 }
                             }

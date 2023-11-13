@@ -7,16 +7,22 @@
         <file>Icons/pause.png</file>
         <file>Icons/play.png</file>
         <file>Icons/stop.png</file>
-        <file>templates/CloseWindow.qml</file>
-        <file>templates/DumpReport.qml</file>
-        <file>templates/Images.qml</file>
-        <file>templates/Main.qml</file>
-        <file>templates/MinimizeWindow.qml</file>
-        <file>templates/MoveWindow.qml</file>
-        <file>templates/Random.qml</file>
-        <file>templates/TemplateBody.qml</file>
-        <file>templates/TrackerDisplay.qml</file>
-        <file>templates/WindowPeripheral.qml</file>
-        <file>templates/ReportView.qml</file>
+        <file>clock-vector.ico</file>
+        <file>SQL/Database.qml</file>
+        <file>Templates/MainWindow/MainWindow.qml</file>
+        <file>Templates/CloseWindow.qml</file>
+        <file>Templates/DumpReport.qml</file>
+        <file>Templates/Images.qml</file>
+        <file>Templates/MinimizeWindow.qml</file>
+        <file>Templates/MoveWindow.qml</file>
+        <file>Templates/Random.qml</file>
+        <file>Templates/ReportView.qml</file>
+        <file>Templates/TemplateBody.qml</file>
+        <file>Templates/TrackerDisplay.qml</file>
+        <file>Templates/TrackerFunctions.qml</file>
+        <file>Templates/WindowPeripheral.qml</file>
+        <file>Icons/jobs.png</file>
+        <file>Templates/Divider.qml</file>
+        <file>Templates/TextTemplate.qml</file>
     </qresource>
 </RCC>

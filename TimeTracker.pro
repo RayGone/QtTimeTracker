@@ -8,6 +8,8 @@ resources.prefix = /$${TARGET}
 RESOURCES += resources \
     TimeTracker.qrc
 
+win32:RC_ICONS += clock-vector.ico
+
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
 
@@ -20,15 +22,21 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    templates/CloseWindow.qml \
-    templates/DumpReport.qml \
-    templates/Images.qml \
-    templates/Main.qml \
-    templates/MinimizeWindow.qml \
-    templates/MoveWindow.qml \
-    templates/Random.qml \
-    templates/ReportView.qml \
-    templates/TemplateBody.qml \
-    templates/TrackerDisplay.qml \
-    templates/WindowPeripheral.qml
+    SQL/Database.qml \
+    Templates/MainWindow/MainWindow.qml \
+    Templates/TextTemplate.qml \
+    config.xml \
+    Templates/CloseWindow.qml \
+    Templates/DumpReport.qml \
+    Templates/Images.qml \
+    Templates/Main.qml \
+    Templates/MinimizeWindow.qml \
+    Templates/MoveWindow.qml \
+    Templates/Random.qml \
+    Templates/ReportView.qml \
+    Templates/SQL/Database.qml \
+    Templates/TemplateBody.qml \
+    Templates/TrackerDisplay.qml \
+    Templates/TrackerFunctions.qml \
+    Templates/WindowPeripheral.qml
 

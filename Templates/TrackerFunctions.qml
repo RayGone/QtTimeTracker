@@ -160,7 +160,7 @@ Item{
             padding: 5
             width: main.width/2
             font.pointSize: 8
-            text: "Start Tracking"
+            text: "Start Tracking Not"
             Material.background: "white"
             color: "white"
             horizontalAlignment: Text.AlignHCenter
