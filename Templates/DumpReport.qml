@@ -1,25 +1,24 @@
 import QtQuick 2.15
 import QtQuick.Controls.Material 2.15
-import "../"
+import "qrc:/Templates"
 
 Rectangle{
     id: report
     width: 20
     height: 20
     radius: width/2
-    visible: main.active
-    anchors.right: parent.right
-    anchors.bottom: parent.bottom
     color: Material.color(Material.Blue,Material.Shade700)
-    border.color: Material.color(Material.Blue,Material.Shade900)
+    border.color: app.primaryColor
     border.width: 3
     clip: true
 
     property string dumpLocation: main.settings.value("report-dump-locaton","file:///D:")
     property string imgSrc: ""
+    property string toolTipText: "Open Reports"
 
-    signal dumpReport()
+    signal open()
     signal fileSaved()
+
 
     Image{
         width: parent.width
@@ -30,6 +29,17 @@ Rectangle{
 
     MouseArea{
         anchors.fill: parent
+
+        ToolTip{
+            text: toolTipText
+            visible: hh.hovered
+            Material.background: Material.color(Material.LightBlue,Material.ShadeA200)
+        }
+
+        HoverHandler{
+            id: hh
+            cursorShape: Qt.PointingHandCursor
+        }
 
         onClicked: {
             dumpReport()

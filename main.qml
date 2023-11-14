@@ -28,7 +28,7 @@ ApplicationWindow {
     //flags: Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint
     color: "transparent"
 
-    property real scaleFactor: Screen.devicePixelRatio/2
+    property real scaleFactor: Screen.devicePixelRatio < 1 ? 1 : Screen.devicePixelRatio/2  // This is completely random thing
 
     property var database
     property int state: 0 //0 means not tracking or stopped; 1 means tracking time; 2 means tracking but currently paused;
@@ -36,16 +36,20 @@ ApplicationWindow {
     property string tString: "Time Tracker"
     property real current_track_rowid: -1
 
-    readonly property alias db: db
+    readonly property alias dbOps: dbOps
     property alias settings: settings    
+    property alias systemTrayIcon: systemTrayIcon
+
 //    readonly property alias trackerProgress: secondaryContent.progressBar
 //    readonly property alias workDescription: appContent.workDescription
 //    readonly property alias alertMsg: mainContent.alertMsg
 
     property bool appClosed: false
 
-    readonly property string fontFamily: 'Helvetica'
+    readonly property string fontFamily: 'Segoe Print'
     property string primaryColor: Material.color(Material.LightBlue,Material.Shade900)
+
+    property date today: new Date()
 
     Settings{
         id: settings
@@ -60,7 +64,7 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
-           console.log(app.scaleFactor,height,width)
+        console.log(app.scaleFactor,height,width)
 
 //        var pos = JSON.parse(settings.value("window-position",false))
 
@@ -73,8 +77,9 @@ ApplicationWindow {
 //        }
 
         database = LocalStorage.openDatabaseSync("TimeTrackerV2", "1.0", "Database used by TimeTracker App to store data", 1000000);
-        db.createDatabase()
+        dbOps.createDatabase()
 
+//        view.push(mainPage)
         //workDescription.text = settings.value("last-work-description",false) ? "Prev: "+settings.value("last-work-description") : "Work Description"
     }
 
@@ -98,14 +103,35 @@ ApplicationWindow {
     StackView{
         id: view
 
-        initialItem: mainPage
+        initialItem: Item{
+            anchors.fill: parent
+
+            Image{
+                id: appIcon
+                source: 'qrc:/Icons/jobs.png'
+                anchors.centerIn: parent
+                width: 100 * app.scaleFactor
+                height: width
+            }
+
+            TextTemplate{
+                anchors.top: appIcon.bottom
+                text: "Time Tracker"
+                font.pointSize: 15 * app.scaleFactor
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+        }
+
         anchors.fill: parent
     }
 
     Component{
         id: mainPage
+
         MainWindow{
-            anchors.fill: parent
+            onStartTracking: {
+                tracker.start()
+            }
         }
     }
 
@@ -183,7 +209,7 @@ ApplicationWindow {
 
 
     Database{
-        id: db
+        id: dbOps
     }
 
 //    onActiveChanged: {
@@ -224,17 +250,18 @@ ApplicationWindow {
         property double v: 0
         onTriggered:{
             app.tracked_time += 1
+            console.log(tracked_time)
 
 
-            tString = computeTrackedReadableTimeString()
-            alertMsg.text = tString
+//            tString = computeTrackedReadableTimeString()
+//            alertMsg.text = tString
 
-            if(tracked_time == 1 || tracked_time%20 === 0)
-                trackerProgress.nextStep((tracked_time%3600)/3600)
-            //v+=0.1
-            //trackerProgress.nextStep(v)
+//            if(tracked_time == 1 || tracked_time%20 === 0)
+//                trackerProgress.nextStep((tracked_time%3600)/3600)
+//            //v+=0.1
+//            //trackerProgress.nextStep(v)
 
-            if(tracked_time%60 === 0) insertEnd(tracked_time,workDescription.text)
+//            if(tracked_time%60 === 0) insertEnd(tracked_time,workDescription.text)
         }
     }
 
@@ -275,7 +302,7 @@ ApplicationWindow {
                 Material.background: Material.color(Material.Grey,Material.Shade100)
 
                 MenuItem{
-                    text: qsTr("Open")
+                    text: qsTr("Open App")
                     visible: appClosed
                     //shortcut: StandardKey.Open
                     onTriggered: {

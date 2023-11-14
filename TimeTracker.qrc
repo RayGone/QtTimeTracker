@@ -24,5 +24,8 @@
         <file>Icons/jobs.png</file>
         <file>Templates/Divider.qml</file>
         <file>Templates/TextTemplate.qml</file>
+        <file>Templates/HeadTitle.qml</file>
+        <file>Templates/MainWindow/StartJobPrompt.qml</file>
+        <file>Templates/Ink.qml</file>
     </qresource>
 </RCC>

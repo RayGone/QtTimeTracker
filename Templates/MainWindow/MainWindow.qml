@@ -8,165 +8,155 @@ import 'qrc:/Templates/'
 Page {
     id: mainPage
 
+    signal startTracking()
+
     header: ToolBar{
-        Material.background: Material.color(Material.LightBlue,Material.Shade900)
-
-        RowLayout {
+        Material.background: Material.color(Material.Grey,Material.Shade50)
+        Column{
             anchors.fill: parent
+            HeadTitle{
+                radius: 0
+                MouseArea{
+                    anchors.fill: parent
+                    onClicked: {
+                        newJob.open()
+                    }
 
-            //            Label {
-            //                text: "Title"
-            //                elide: Label.ElideRight
-            //                font.pointSize: 25
-            //                horizontalAlignment: Qt.AlignHCenter
-            //                verticalAlignment: Qt.AlignVCenter
-            //                Layout.fillWidth: true
-            //            }
-
-            ToolButton{
-                text: "Start New Job"
-                font.family: app.fontFamily
-
-                onClicked: {
-                    newJob.open()
+                    HoverHandler {
+                        cursorShape: Qt.PointingHandCursor
+                    }
                 }
-
             }
         }
-
-
     }
 
-    Drawer{
+    Component.onCompleted: {
+        console.log("MainWindow Build")
+    }
+
+    StartJobPrompt{
         id: newJob
         width: mainPage.width
         height: mainPage.height/2
-        edge: Qt.TopEdge
-        interactive: false
-        clip: true
 
-        Pane{
-            anchors.fill: parent
-
-            ColumnLayout{
-                anchors.fill: parent
-
-                Rectangle{
-                    Layout.preferredHeight: 50 * app.scaleFactor
-                    Layout.preferredWidth: parent.width
-                    color: Material.color(Material.LightBlue,Material.Shade900)
-                    radius: 40 * app.scaleFactor
-
-                    RowLayout{
-                        anchors.fill: parent
-                        anchors.centerIn: parent
-                        spacing: 5 * app.scaleFactor
-
-
-                        Divider{
-                            Layout.preferredWidth: 5 * app.scaleFactor
-                            Layout.preferredHeight: 30 * app.scaleFactor
-                        }
-
-                        Image{
-                            source: 'qrc:/Icons/jobs.png'
-                            Layout.preferredWidth: 30 * app.scaleFactor
-                            Layout.preferredHeight: 30 * app.scaleFactor
-                            fillMode: Image.PreserveAspectFit
-                            //anchors.verticalCenter: parent.verticalCenter
-                        }
-
-                        TextTemplate{
-                            anchors.centerIn: parent
-                            text: 'Start a new job'
-                            font.bold: Font.Light
-                            color:"white"
-                        }
-                    }
-                }
-
-                Divider{
-                    Layout.preferredHeight: 15
-                }
-
-                TextField{
-                    placeholderText: "Job Title"
-                    Layout.preferredWidth: parent.width
-                    Layout.preferredHeight: 30 * app.scaleFactor
-                    Material.accent: app.primaryColor
-                    maximumLength: 50
-                }
-
-                TextField{
-                    placeholderText: "Job Description"
-                    Layout.preferredWidth: parent.width
-                    Layout.preferredHeight: 30 * app.scaleFactor
-                    Material.accent: app.primaryColor
-                    maximumLength: 250
-                }
-
-
-                Divider{
-                    Layout.preferredHeight: 5
-                }
-
-                Item{
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 20
-
-                    Button{
-                        id: startButton
-                        text: 'Go'
-                        Material.background: app.primaryColor
-                        contentItem: TextTemplate{
-                            text: parent.text
-                            color: '#ffffff'
-                            padding:{
-                                left: 5 * app.scaleFactor
-                                right: 5 * app.scaleFactor
-                                bottom: 1
-                                top: 1
-                            }
-                        }
-
-                        HoverHandler {
-                            cursorShape: Qt.PointingHandCursor
-                        }
-                    }
-
-                    Button{
-                        id: closeButton
-                        text: 'Not Now'
-                        anchors.right: parent.right
-                        Material.background: 'red'
-                        Layout.preferredHeight: startButton.height
-                        contentItem: TextTemplate{
-                            text: parent.text
-                            color: '#ffffff'
-                            font.pointSize: 10 * app.scaleFactor
-                            padding:{
-                                left: 5 * app.scaleFactor
-                                right: 5 * app.scaleFactor
-                                bottom: 1
-                                top: 1
-                            }
-                        }
-
-                        onClicked: {
-                            newJob.close();
-                        }
-
-                        HoverHandler {
-                            cursorShape: Qt.PointingHandCursor
-                        }
-                    }
-                }
-
-            }
+        onStart: {
+            //console.log("Start Tracking")
+            startTracking()
         }
     }
 
-    ColumnLayout{
+    function computeTime(seconds){
+        var minutes = seconds / 3600
+        var hours = parseInt(minutes)
+        minutes = Math.ceil((minutes - hours) * 60)
+
+        return (hours? hours + " hour" : "") + " " + (minutes ? minutes + " minutes" : "")
+    }
+
+    Pane{
         anchors.fill: parent
+        Column{
+            anchors.fill: parent
+            spacing: 2 * app.scaleFactor
+
+            Rectangle{
+                width: parent.width
+                height: 30 * app.scaleFactor
+                TextTemplate{
+                    padding: 5
+                    text: 'Recent Work History'
+                }
+                color: Color.transparent(app.primaryColor,0.5)
+                radius: 5
+
+                DumpReport{
+                    id: reportBtn
+                    height: 30 * app.scaleFactor
+                    width: 30 * app.scaleFactor
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    imgSrc: "qrc:/Icons/dump.png"
+
+                    onOpen: {
+
+                    }
+                }
+            }
+
+            Row{
+                width: parent.width
+                TextTemplate{
+                    width: parent.width/3
+                    text: "Job Title"
+                    font.pointSize: 8 * app.scaleFactor
+                    horizontalAlignment: Text.AlignLeft
+                }
+
+                TextTemplate{
+                    width: parent.width/3
+                    text: "Work Date"
+                    font.pointSize: 8 * app.scaleFactor
+                    horizontalAlignment: Text.AlignLeft
+                }
+
+                TextTemplate{
+                    width: parent.width/3
+                    text: "Worked Time"
+                    font.pointSize: 8 * app.scaleFactor
+                    horizontalAlignment: Text.AlignLeft
+                }
+            }
+
+            ToolSeparator{
+                orientation: Qt.Horizontal
+                width: parent.width
+                padding: 0
+            }
+
+            TextTemplate{
+                visible: !historyListView.model.length
+                text: "<br><br><br>     No Work History!!       <br><b>Start a new job!!</b>"
+                font.pointSize: 8 * app.scaleFactor
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+
+            ScrollView{
+                id: historyList
+                height: parent.height - 45 * app.scaleFactor
+                width: parent.width
+                contentHeight: parent.height
+                contentWidth: parent.width
+                clip: true
+
+                ListView{
+                    id: historyListView
+                    anchors.fill: parent
+                    model: app.dbOps.getWorkHistory()
+                    delegate: Row{
+                        width: historyList.width
+                        TextTemplate{
+                            width: parent.width/3
+                            text: modelData.work
+                            font.pointSize: 8 * app.scaleFactor
+                            horizontalAlignment: Text.AlignLeft
+                        }
+
+                        TextTemplate{
+                            width: parent.width/3
+                            text: new Date(modelData.start * 1000).toLocaleDateString()
+                            font.pointSize: 6 * app.scaleFactor
+                            horizontalAlignment: Text.AlignLeft
+                        }
+
+                        TextTemplate{
+                            width: parent.width/3
+                            text: computeTime(modelData.tracked_time)
+                            font.pointSize: 8 * app.scaleFactor
+                            horizontalAlignment: Text.AlignLeft
+                        }
+                    }
+                }
+            }
+        }
     }
 }

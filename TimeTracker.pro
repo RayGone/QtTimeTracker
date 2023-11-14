@@ -23,7 +23,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 DISTFILES += \
     SQL/Database.qml \
+    Templates/HeadTitle.qml \
+    Templates/Ink.qml \
     Templates/MainWindow/MainWindow.qml \
+    Templates/MainWindow/StartJobPrompt.qml \
     Templates/TextTemplate.qml \
     config.xml \
     Templates/CloseWindow.qml \

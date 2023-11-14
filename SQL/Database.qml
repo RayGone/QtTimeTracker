@@ -39,6 +39,26 @@ Item {
         insertEnd(tracked_time,workDescription.text)
     }
 
+    function getWorkHistory(limit=10){
+        var data = [];
+        app.database.transaction(
+            function(tx){
+                var query = "
+                    SELECT * FROM TimeTracks
+                    WHERE tracked_time > 60
+                    ORDER BY trackid DESC
+                    LIMIT ?
+                ";
+                var rs = tx.executeSql(query,[limit])
+                for(var i=0;i<rs.rows.length;i++){
+                    var item = rs.rows.item(i)
+                    data.push(item);
+                }
+            }
+        )
+        return data
+    }
+
     function filterByDate(limit=14){
         app.database.transaction(
             function(tx){
