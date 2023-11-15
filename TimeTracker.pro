@@ -8,7 +8,7 @@ resources.prefix = /$${TARGET}
 RESOURCES += resources \
     TimeTracker.qrc
 
-win32:RC_ICONS += clock-vector.ico
+win32:RC_ICONS += app-icon.ico
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =

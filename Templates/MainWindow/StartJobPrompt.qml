@@ -13,6 +13,10 @@ Drawer{
 
     signal start()
 
+    function keyEnterPressedHandler(event){
+        if(event.key + Qt.EnterKeyReturn=== Qt.Key_Enter) startButton.clicked()
+    }
+
     Pane{
         anchors.fill: parent
 
@@ -34,19 +38,26 @@ Drawer{
             TextField{
                 id: jobTitle
                 placeholderText: "Job Title"
+                placeholderTextColor: focus ? app.primaryColor : Color.transparent(app.primaryColor,0.4)
                 Layout.preferredWidth: parent.width
                 Layout.preferredHeight: 30 * app.scaleFactor
                 Material.accent: app.primaryColor
                 maximumLength: 50
+
+                Keys.onPressed: keyEnterPressedHandler(event)
             }
 
             TextField{
                 id: jobDesc
                 placeholderText: "Job Description"
+                placeholderTextColor: focus ? app.primaryColor : Color.transparent(app.primaryColor,0.4)
                 Layout.preferredWidth: parent.width
                 Layout.preferredHeight: 30 * app.scaleFactor
                 Material.accent: app.primaryColor
+                Material.foreground: app.primaryColor
                 maximumLength: 250
+
+                Keys.onPressed: keyEnterPressedHandler(event)
             }
 
             Item{
@@ -70,7 +81,7 @@ Drawer{
 
                     onClicked: {
                         if(jobTitle.text.length < 4){
-                            app.systemTrayIcon.showMessage("Missing Field","Job Title is required field.")
+                            app.systemTrayIcon.showMessage("Missing Field","Job Title is required field.\nText length must be 4 or more characters.")
                         }
                         else{
                             newJob.close()

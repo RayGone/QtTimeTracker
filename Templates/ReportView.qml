@@ -10,26 +10,28 @@ import Qt.labs.platform
 Page{
     id: reportView
 
-//    width: main.width * 4.5
-//    height: main.height * 3
+    signal back()
+
+//    width: app.width * 4.5
+//    height: app.height * 3
 //    maximumHeight: height
 //    maximumWidth: width
 //    minimumHeight: height
 //    minimumWidth: width
-//    flags: Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint
+//   flags: Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint
 
-    property bool groupby: main.settings.value("filter-groupby",false)
+    property bool groupby: app.settings.value("filter-groupby",false)
 
     function setWindowPosition(){
-        if(main.x - width > 10)
-            setX(main.x - width)
+        if(app.x - width > 10)
+            setX(app.x - width)
         else
-            setX(main.x + main.width)
+            setX(app.x + app.width)
 
-        if(main.y - height > 10)
-            setY(main.y - height)
+        if(app.y - height > 10)
+            setY(app.y - height)
         else
-            setY(main.y + main.height)
+            setY(app.y + app.height)
     }
 
     onVisibleChanged: {
@@ -50,9 +52,9 @@ Page{
 
     function defaultData(){
         if(groupby)
-            main.db.filterByWork_Date(main.settings.value("filter-limit",'14'))
+            app.db.filterByWork_Date(app.settings.value("filter-limit",'14'))
         else
-            main.db.filterByDate(main.settings.value("filter-limit",'14'))
+            app.db.filterByDate(app.settings.value("filter-limit",'14'))
     }
 
     FolderDialog{
@@ -61,7 +63,7 @@ Page{
         onAccepted: {
             console.log(folder)
 
-            main.settings.setValue("report-dump-locaton",folder.toString())
+            app.settings.setValue("report-dump-locaton",folder.toString())
             path.text = folder.toString().replace("file:///","")
         }
     }
@@ -99,8 +101,36 @@ Page{
             Column{
                 anchors.fill: parent
 
+
                 Rectangle{
                     id: row1
+                    height: parent.height/3
+                    width: parent.width
+                    color: Material.color(Material.Blue,Material.Shade800)
+
+                    RoundButton{
+                        id: backBtn
+                        icon.source: "qrc:/Icons/back.png"
+                        icon.color: 'transparent'
+                        anchors.verticalCenter: parent.verticalCenter
+                        Material.background: app.primaryColor
+
+                        onClicked: back()
+                    }
+
+                    HeadTitle{
+                        anchors.left: backBtn.right
+                        width: row1.width - 50 * app.scaleFactor
+                        height: row1.height - 6 * app.scaleFactor
+                        textElem.text: 'Work Reports'
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                }
+
+
+                Rectangle{
+                    id: row2
                     height: parent.height/3
                     width: parent.width
                     color: Material.color(Material.Blue,Material.Shade900)
@@ -132,7 +162,7 @@ Page{
                             TextInput{
                                 id: path
                                 anchors.centerIn: parent
-                                text: main.settings.value("report-dump-locaton","file:///D:").replace("file:///","")
+                                text: app.settings.value("report-dump-locaton","file:///D:").replace("file:///","")
                                 font.pixelSize: 14
                                 //font.bold: true
                                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
@@ -211,7 +241,7 @@ Page{
                                 tm -= (parseInt(tm/60)*60)
                                 csv_string += "Total: ,"+th+"hr "+tm+"min,,"
 
-                                var filename = main.settings.value('report-dump-locaton',"file:///D:") + "/Work_Log_"+today+".csv"
+                                var filename = app.settings.value('report-dump-locaton',"file:///D:") + "/Work_Log_"+today+".csv"
                                 try{
                                     saveFile(filename,csv_string,displayState)
                                 }catch(e){
@@ -231,19 +261,13 @@ Page{
 
                                 property string str: ""
                                 onTriggered: {
-                                    path.text = main.settings.value('report-dump-locaton',"file:///D:").replace("file:///","")
+                                    path.text = app.settings.value('report-dump-locaton',"file:///D:").replace("file:///","")
                                 }
                             }
                         }
                     }
                 }
 
-                Rectangle{
-                    id: row2
-                    height: parent.height/3
-                    width: parent.width
-                    color: Material.color(Material.Blue,Material.Shade800)
-                }
 
                 Rectangle{
                     id: row3
@@ -348,7 +372,7 @@ Page{
                                         anchors.fill: parent
                                         onClicked: {
                                             groupby = !groupby
-                                            main.settings.setValue("filter-groupby",groupby)
+                                            app.settings.setValue("filter-groupby",groupby)
                                         }
                                     }
                                 }
@@ -383,7 +407,7 @@ Page{
                                     TextInput{
                                         id: dayLimit
                                         inputMethodHints: Qt.ImhPreferNumbers | Qt.ImhNoPredictiveText
-                                        text: main.settings.value("filter-limit",'14')
+                                        text: app.settings.value("filter-limit",'14')
                                         horizontalAlignment: Text.AlignHCenter
                                         verticalAlignment: Text.AlignVCenter
                                         font.pixelSize: 12
@@ -446,7 +470,7 @@ Page{
                                         if(limit===0) limit = 1
                                         dayLimit.text = limit
 
-                                        main.settings.setValue("filter-limit",limit)
+                                        app.settings.setValue("filter-limit",limit)
                                         defaultData()
                                     }
                                 }

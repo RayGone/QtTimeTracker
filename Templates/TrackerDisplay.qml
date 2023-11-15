@@ -3,19 +3,20 @@ import QtQuick.Controls.Material 2.15
 
 Item{
     id: tracker
-    anchors.fill: parent
-    visible: !main.active && main.tracked_time
+    visible: !app.active && app.tracked_time
 
-    Text {
-        id: timeDisplay
-        text: qsTr(main.tString)
-        font.pointSize: 17
+    TextTemplate {
+        id: timeDisplayText
+        text: qsTr(app.trackerInfo.tString)
+        font.pointSize: 13 * app.scaleFactor
+        font.family: "Helvetica"
         anchors.centerIn: parent
+        width: diameter
         horizontalAlignment: Text.AlignHCenter
-        color: "white"
-        font.weight: 700
+        color: app.primaryColor
+        font.weight: Font.DemiBold
         style: Text.Outline
-        styleColor: "blue"
+        styleColor: Color.transparent(app.primaryColor,0.2)
     }
 
 
@@ -41,6 +42,7 @@ Item{
     property color primaryColor: colorList[0]
     property color secondaryColor: colorList[1]
     readonly property alias progressBar: progressBar
+    readonly property alias timeDisplayText: timeDisplayText
 
     Canvas {
            id: progressBar
@@ -60,10 +62,10 @@ Item{
                if(s > prevProg){
                    //console.log("before",tracker.primaryColor,tracker.secondaryColor)
                    prevProg = s
-                   tracker.colorIndex = (tracker.colorIndex+1)%8
-                   //console.log(tracker.colorIndex," is generated")
-                   tracker.secondaryColor = tracker.primaryColor
-                   tracker.primaryColor = tracker.colorList[tracker.colorIndex]
+//                   tracker.colorIndex = (tracker.colorIndex+1)%8
+//                   //console.log(tracker.colorIndex," is generated")
+//                   tracker.secondaryColor = tracker.primaryColor
+//                   tracker.primaryColor = tracker.colorList[tracker.colorIndex]
                    //console.log("after",tracker.primaryColor,tracker.secondaryColor)
                }
                value = value - s

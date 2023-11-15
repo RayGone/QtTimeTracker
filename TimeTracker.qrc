@@ -27,5 +27,8 @@
         <file>Templates/HeadTitle.qml</file>
         <file>Templates/MainWindow/StartJobPrompt.qml</file>
         <file>Templates/Ink.qml</file>
+        <file>Icons/hourglass.gif</file>
+        <file>Icons/left-arrow.png</file>
+        <file>Icons/back.png</file>
     </qresource>
 </RCC>

@@ -12,11 +12,11 @@ Rectangle{
     border.width: 3
     clip: true
 
-    property string dumpLocation: main.settings.value("report-dump-locaton","file:///D:")
+    property string dumpLocation: app.settings.value("report-dump-locaton","file:///D:")
     property string imgSrc: ""
-    property string toolTipText: "Open Reports"
+    property string toolTipText: "View Reports"
 
-    signal open()
+    signal openClicked()
     signal fileSaved()
 
 
@@ -32,7 +32,7 @@ Rectangle{
 
         ToolTip{
             text: toolTipText
-            visible: hh.hovered
+            visible: hh.hovered && toolTipText
             Material.background: Material.color(Material.LightBlue,Material.ShadeA200)
         }
 
@@ -42,7 +42,7 @@ Rectangle{
         }
 
         onClicked: {
-            dumpReport()
+            openClicked()
         }
 
         onDoubleClicked: {
@@ -54,7 +54,7 @@ Rectangle{
 
     function dumpData(){
         var csv_string = "";
-        main.database.transaction(
+        app.database.transaction(
             function(tx){
                 // var rs = tx.executeSql("SELECT trackid as SN,work as Work_Description, date(datetime(datetime(start,'unixepoch'),'localtime')) as Started_At, date(datetime(datetime(end,'unixepoch'),'localtime')) as Ended_At, tracked_time as Tracked_Seconds FROM TimeTracks")
                 var query = "

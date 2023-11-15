@@ -1,5 +1,5 @@
 import QtCore
-import QtQml 2.12
+import QtQml 2.15
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
@@ -31,25 +31,37 @@ ApplicationWindow {
     property real scaleFactor: Screen.devicePixelRatio < 1 ? 1 : Screen.devicePixelRatio/2  // This is completely random thing
 
     property var database
-    property int state: 0 //0 means not tracking or stopped; 1 means tracking time; 2 means tracking but currently paused;
-    property int tracked_time: 0
-    property string tString: "Time Tracker"
     property real current_track_rowid: -1
-
     readonly property alias dbOps: dbOps
-    property alias settings: settings    
-    property alias systemTrayIcon: systemTrayIcon
 
 //    readonly property alias trackerProgress: secondaryContent.progressBar
 //    readonly property alias workDescription: appContent.workDescription
 //    readonly property alias alertMsg: mainContent.alertMsg
 
     property bool appClosed: false
-
     readonly property string fontFamily: 'Segoe Print'
     property string primaryColor: Material.color(Material.LightBlue,Material.Shade900)
-
     property date today: new Date()
+
+    property alias settings: settings
+    property alias systemTrayIcon: systemTrayIcon
+    readonly property alias trackerInfo: trackerInfo
+
+    QtObject{
+        id: trackerInfo
+
+        // App Tracking States ----------
+        readonly property string flagIdle: 'state0'
+        readonly property string flagTracking: 'state1'
+        readonly property string flagStopped: 'state2'
+
+        //-------------
+        property string tString: "TimeTracker"
+        property int trackedTime: 0
+        property bool currentlyTracking: false
+        property string state: ''
+
+    }
 
     Settings{
         id: settings
@@ -79,7 +91,7 @@ ApplicationWindow {
         database = LocalStorage.openDatabaseSync("TimeTrackerV2", "1.0", "Database used by TimeTracker App to store data", 1000000);
         dbOps.createDatabase()
 
-//        view.push(mainPage)
+        view.push(mainPage)
         //workDescription.text = settings.value("last-work-description",false) ? "Prev: "+settings.value("last-work-description") : "Work Description"
     }
 
@@ -104,7 +116,15 @@ ApplicationWindow {
         id: view
 
         initialItem: Item{
-            anchors.fill: parent
+
+            AnimatedImage{
+                id: animation
+                width: 40
+                height: 40
+                source: 'qrc:/Icons/hourglass.gif'
+                fillMode: Image.PreserveAspectFit
+                //speed: 0.5
+            }
 
             Image{
                 id: appIcon
@@ -130,7 +150,12 @@ ApplicationWindow {
 
         MainWindow{
             onStartTracking: {
-                tracker.start()
+                app.trackerInfo.state = app.trackerInfo.flagTracking
+                view.push(trackPage)
+            }
+
+            onOpenReports: {
+                view.push(reportPage)
             }
         }
     }
@@ -139,8 +164,69 @@ ApplicationWindow {
         id: reportPage
 
         ReportView{
+            onBack: view.pop();
         }
     }
+
+    Component{
+        id: trackPage
+
+        Page{
+
+            header: HeadTitle{textElem.text: "Current Job's Title"}
+
+            Column{
+                anchors.fill: parent
+
+                Row{
+                    width: parent.width
+
+                    TrackerDisplay{
+                        id: trackerPage
+                        width: parent.width/2
+                        height: width
+                        diameter: width * 0.8
+                        visible: true
+                        primaryColor: app.primaryColor
+
+                        Connections{
+                            target: app.trackerInfo
+
+                            function onTrackedTimeChanged(){
+                                trackerPage.progressBar.nextStep((app.trackerInfo.trackedTime)/60)
+                            }
+                        }
+                    }
+
+                    Column{
+                        width: parent.width/2
+                        spacing: 5 * app.scaleFactor
+                        padding: {
+                            left: 10 * app.scaleFactor
+                        }
+
+                        Divider{
+                            width: parent.width
+                            height: 20 * app.scaleFactor
+                        }
+
+                        TextTemplate{
+                            text: "Continue"
+                        }
+
+                        TextTemplate{
+                            text: "Pause"
+                        }
+
+                        TextTemplate{
+                            text: "Stop"
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
 
 
@@ -234,7 +320,7 @@ ApplicationWindow {
         onTriggered: {
             if(trackerWindow.opacity === 0.4) trackerWindow.opacity = 0.2;
             else {
-                if(!tracked_time) showMinimized();
+                if(!trackedTime) showMinimized();
                 console.log('App Inactive: Minimizing');
                 repeat = false
             }
@@ -245,23 +331,19 @@ ApplicationWindow {
         id: tracker
         interval: 1000
         repeat: true
-        running: false
+        running: app.trackerInfo.state === app.trackerInfo.flagTracking
 
-        property double v: 0
         onTriggered:{
-            app.tracked_time += 1
-            console.log(tracked_time)
-
-
-//            tString = computeTrackedReadableTimeString()
+            app.trackerInfo.trackedTime += 1
+            app.trackerInfo.tString = computeTrackedReadableTimeString()
 //            alertMsg.text = tString
 
-//            if(tracked_time == 1 || tracked_time%20 === 0)
-//                trackerProgress.nextStep((tracked_time%3600)/3600)
+//            if(trackedTime == 1 || trackedTime%20 === 0)
+//                trackerProgress.nextStep((trackedTime%3600)/3600)
 //            //v+=0.1
 //            //trackerProgress.nextStep(v)
 
-//            if(tracked_time%60 === 0) insertEnd(tracked_time,workDescription.text)
+//            if(trackedTime%60 === 0) insertEnd(trackedTime,workDescription.text)
         }
     }
 
@@ -278,11 +360,11 @@ ApplicationWindow {
     }
 
     function computeTrackedReadableTimeString(){
-        var m = parseInt(tracked_time/60)
-        var s = tracked_time - m*60
+        var m = parseInt(app.trackerInfo.trackedTime/60)
+        var s = app.trackerInfo.trackedTime - m*60
         var h = parseInt(m/60)
         m = m - h*60
-        return (h<10? "0"+h : h) + ":" + (m<10? "0"+m : m) + ":" + (s<10 ? "0"+s : s)
+        return (h<10? "0"+h : h) + " : " + (m<10? "0"+m : m) + " : " + (s<10 ? "0"+s : s)
     }
 
 

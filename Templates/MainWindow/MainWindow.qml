@@ -9,6 +9,7 @@ Page {
     id: mainPage
 
     signal startTracking()
+    signal openReports()
 
     header: ToolBar{
         Material.background: Material.color(Material.Grey,Material.Shade50)
@@ -50,7 +51,7 @@ Page {
         var hours = parseInt(minutes)
         minutes = Math.ceil((minutes - hours) * 60)
 
-        return (hours? hours + " hour" : "") + " " + (minutes ? minutes + " minutes" : "")
+        return (hours? hours + "H" : "") + " " + (minutes ? minutes + "M" : "")
     }
 
     Pane{
@@ -77,8 +78,8 @@ Page {
                     anchors.verticalCenter: parent.verticalCenter
                     imgSrc: "qrc:/Icons/dump.png"
 
-                    onOpen: {
-
+                    onOpenClicked: {
+                        openReports()
                     }
                 }
             }
