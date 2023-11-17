@@ -19,6 +19,8 @@ import "qrc:/Icons"
 ApplicationWindow {
     id: app
 
+    //flags: //Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint
+
     width: 350 * scaleFactor
     height: 450 * scaleFactor
 
@@ -214,65 +216,13 @@ ApplicationWindow {
         }
     }
 
+    FramelessWindow{
+        id: backgroundTracker
 
-
-
-
-//    TemplateBody{
-//        id: trackerWindow
-//        visible: false
-//        width: app.width
-//        height: app.height
-//        anchors.centerIn: parent
-//        radius: width/2
-
-//        TrackerFunctions{
-//            id: mainContent
-//            anchors.fill: parent
-//            visible: !secondaryContent.visible
-//        }
-
-
-//        WindowPeripheral{
-//            id: buttons
-
-//            width: app.width
-//            height: app.height
-//            visible: active
-
-//            onDisplayReportView: {
-//                reportview.visible = !reportview.visible
-//            }
-//        }
-
-//        TrackerDisplay{
-//            id: secondaryContent
-
-//            diameter: mainContent.width
-//            visible: false
-
-//            MouseArea{
-//                anchors.fill: parent
-
-//                onClicked: {
-//                    secondaryContent.visible = false
-//                }
-//            }
-
-//            property int lineWidth: 10
-//            property int animationDuration: 1000
-//            property var colorList: [
-//                Material.color(Material.Grey,Material.Shade900),
-//                Material.color(Material.Grey,Material.Shade100),
-//                Material.color(Material.Green,Material.Shade900),
-//                Material.color(Material.Red,Material.Shade900),
-//                Material.color(Material.DeepPurple,Material.Shade900),
-//                Material.color(Material.Yellow,Material.Shade900),
-//                Material.color(Material.Indigo,Material.Shade900),
-//                Material.color(Material.Lime,Material.Shade900),
-//            ]
-//        }
-//    }
+        height: app.width/2.45
+        width: app.width/2.45
+        visible: app.appClosed && (app.trackerInfo.state != app.trackerInfo.flagIdle)
+    }
 
     /*
       -------------------------------------------------------
@@ -299,20 +249,11 @@ ApplicationWindow {
 //        }
 //    }
 
-//    Timer{
-//        id: trigger
-//        running: !active
-//        interval: 120000
-//        repeat: true
-//        onTriggered: {
-//            if(trackerWindow.opacity === 0.4) trackerWindow.opacity = 0.2;
-//            else {
-//                if(!trackedTime) showMinimized();
-//                console.log('App Inactive: Minimizing');
-//                repeat = false
-//            }
-//        }
-//    }
+    /*
+      -------------------------------------------------------
+      ----------------------System Timer---------------------
+      -------------------------------------------------------
+      */
 
     Timer{
         id: tracker
@@ -323,30 +264,34 @@ ApplicationWindow {
         onTriggered:{
             app.trackerInfo.trackedTime += 1
             app.trackerInfo.tString = Util.computeTrackedReadableTimeString(app.trackerInfo.trackedTime)
-
-//            alertMsg.text = tString
-
-//            if(trackedTime == 1 || trackedTime%20 === 0)
-//                trackerProgress.nextStep((trackedTime%3600)/3600)
-//            //v+=0.1
-//            //trackerProgress.nextStep(v)
-
-//            if(trackedTime%60 === 0) insertEnd(trackedTime,workDescription.text)
         }
     }
 
+    //    Timer{
+    //        id: trigger
+    //        running: !active
+    //        interval: 120000
+    //        repeat: true
+    //        onTriggered: {
+    //            if(trackerWindow.opacity === 0.4) trackerWindow.opacity = 0.2;
+    //            else {
+    //                if(!trackedTime) showMinimized();
+    //                console.log('App Inactive: Minimizing');
+    //                repeat = false
+    //            }
+    //        }
+    //    }
+
     Timer{
         id: pauseFlash
-        running: app.state === 2
+        running: app.trackerInfo.state === app.trackerInfo.flagPaused
         repeat: true
         interval: 3000
 
         onTriggered: {
-            var tmp = app.tString === "Paused" ? computeTrackedReadableTimeString() : "Paused"
-            alertMsg.text = tString = tmp
+            app.trackerInfo.tString = app.trackerInfo.tString === "Paused" ? computeTrackedReadableTimeString() : "Paused";
         }
     }
-
 
     //-----------
     // System Tray Icon
@@ -370,20 +315,59 @@ ApplicationWindow {
                     }
                 }
 
+
+                MenuItemGroup{
+                    id: floatingTrackerMenu
+                    visible: backgroundTracker.visible
+                }
+
+                MenuSeparator{group: floatingTrackerMenu}
+                MenuItem{
+                    text: qsTr("Hide Floating Tracker")
+                    group: floatingTrackerMenu
+                    //shortcut: StandardKey.Open
+                    onTriggered: {
+                        backgroundTracker.close();
+                    }
+                }
+
+                MenuItemGroup{
+                    id: trackerFunctionMenu
+                    visible: app.trackerInfo.state !== app.trackerInfo.flagIdle
+                }
+
+                MenuItem{
+                    group: trackerFunctionMenu
+                    separator: true
+                }
+
+                MenuItem{
+                    text: qsTr("Play")
+                    group: trackerFunctionMenu
+                    //shortcut: StandardKey.Cancel
+                    onTriggered: {
+                        //app.close()
+                    }
+                }
+
+                MenuItem{
+                    text: qsTr("Pause")
+                    group: trackerFunctionMenu
+                    //shortcut: StandardKey.Cancel
+                    onTriggered: {
+                        //app.close()
+                    }
+                }
+                MenuItem{
+                    text: qsTr("Stop")
+                    group: trackerFunctionMenu
+                    //shortcut: StandardKey.Cancel
+                    onTriggered: {
+                        //app.close()
+                    }
+                }
+
                 MenuSeparator{}
-
-                //                MenuItem{
-                //                    visible: !appClosed
-                //                    text: qsTr("Close")
-                //                    //shortcut: StandardKey.Cancel
-                //                    onTriggered: {
-                //                        app.close()
-                //                    }
-                //                }
-
-                //                MenuSeparator{
-                //                    visible: !appClosed
-                //                }
 
                 MenuItem{
                     text: qsTr("Quit")

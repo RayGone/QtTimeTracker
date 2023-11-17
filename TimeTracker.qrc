@@ -35,5 +35,6 @@
         <file>Utilities/Utils.js</file>
         <file>QML/TrackerView.qml</file>
         <file>QML/Controls/HistoryTable.qml</file>
+        <file>QML/FramelessWindow.qml</file>
     </qresource>
 </RCC>

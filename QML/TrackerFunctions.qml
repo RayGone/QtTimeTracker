@@ -12,23 +12,23 @@ Item{
 
     Item{
         id: trackButtons
-        width: main.width*0.4
-        height: main.height*0.4 + 3
+        width: app.width*0.4
+        height: app.height*0.4 + 3
         anchors.centerIn: parent
 
         Image{
             id: playIcon
             source: images.play
-            width: main.width*0.4
-            height: main.height* 0.4
+            width: app.width*0.4
+            height: app.height* 0.4
             visible: true
         }
 
         Image{
             id: pauseIcon
             source: images.pause
-            width: main.width*0.4
-            height: main.height* 0.4
+            width: app.width*0.4
+            height: app.height* 0.4
             visible: false
         }
 
@@ -36,24 +36,24 @@ Item{
             anchors.fill: trackButtons
             onClicked: {
                 trackButtons.focus = true
-                if(main.state === 0 || main.state === 2){ // Tracking Started
-                    if(main.state === 0){
-                        main.tString = "00:00:00"
+                if(app.state === 0 || app.state === 2){ // Tracking Started
+                    if(app.state === 0){
+                        app.tString = "00:00:00"
                         workDescription.text = settings.value("last-work-description","Work Description")
                         insertStart(workDescription.text)
                     }
-                    main.state = 1
+                    app.state = 1
                     playIcon.visible = false
                     pauseIcon.visible = true
                     tracker.start()
                 }
-                else if(main.state === 1){// Tracking Paused
-                    main.state = 2
+                else if(app.state === 1){// Tracking Paused
+                    app.state = 2
                     playIcon.visible = true
                     pauseIcon.visible = false
                     tracker.stop()
-                    insertEnd(main.tracked_time,workDescription.text)
-                    main.tString = "Paused"
+                    insertEnd(app.tracked_time,workDescription.text)
+                    app.tString = "Paused"
                 }
             }
         }
@@ -66,7 +66,7 @@ Item{
         anchors.verticalCenter: trackButtons.verticalCenter
         width: side.width + 10
         height: side.height
-        visible: main.state
+        visible: true
         Rectangle{
             id:side
             height: trackButtons.height/2
@@ -84,12 +84,12 @@ Item{
             MouseArea{
                 anchors.fill: parent
                 onClicked: {
-                    main.state = 0
+                    app.state = 0
                     playIcon.visible = true
                     pauseIcon.visible = false
                     tracker.stop()
                     insertEnd(tracked_time,workDescription.text)
-                    main.tracked_time = 0
+                    app.tracked_time = 0
                     alertMsg.text = "Start Tracking"
                 }
             }
@@ -110,7 +110,7 @@ Item{
         TextInput{
             id: workDescription
             anchors.centerIn: parent
-            width: main.width/1.5
+            width: app.width/1.5
             font.pointSize: 8
             text: ""
             padding: {
@@ -136,7 +136,7 @@ Item{
     Rectangle{
         id: alert
         color: Material.color(Material.LightBlue,Material.Shade900)
-        width: main.width/1.5
+        width: app.width/1.5
         height: 20
         radius: 5
         anchors.horizontalCenter: mainContent.horizontalCenter
@@ -158,7 +158,7 @@ Item{
             id: alertMsg
             anchors.centerIn: parent
             padding: 5
-            width: main.width/2
+            width: app.width/2
             font.pointSize: 8
             text: "Start Tracking Not"
             Material.background: "white"

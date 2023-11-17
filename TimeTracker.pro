@@ -33,6 +33,7 @@ DISTFILES += \
     QML/Controls/MoveWindow.qml \
     QML/Controls/TextTemplate.qml \
     QML/Controls/TrackerDisplay.qml \
+    QML/FramelessWindow.qml \
     QML/Images.qml \
     QML/MainWindow/MainWindow.qml \
     QML/MainWindow/StartJobPrompt.qml \
@@ -42,4 +43,7 @@ DISTFILES += \
     QML/TrackerFunctions.qml \
     QML/TrackerView.qml \
     QML/WindowPeripheral.qml \
+    Utilities/Database.qml \
+    Utilities/Files.js \
+    Utilities/Utils.js
 

@@ -46,9 +46,9 @@ Item{
             displayStatus.start()
         }
 
-        onDumpReport: {
-            displayReportView()
-        }
+//        onDumpReport: {
+//            displayReportView()
+//        }
 
         Timer{
             id: displayStatus

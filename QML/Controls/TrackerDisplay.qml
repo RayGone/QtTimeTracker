@@ -38,8 +38,9 @@ Item{
     ]
 
     property int diameter: 50
-    property color primaryColor: colorList[0]
-    property color secondaryColor: colorList[1]
+    property color primaryColor: app.primaryColor
+    property color secondaryColor: Material.color(Material.Grey,Material.Shade100)
+    property color miniProgressStrokeColor: Color.transparent(tracker.primaryColor, 0.5)
 
 
     onDiameterChanged: {
@@ -59,6 +60,8 @@ Item{
             majorProgress.degree = (t - parseInt(t))*360;
             if(majorProgress.degree < 1) majorProgress.degree = 1
         }
+
+        timeDisplayText.text = qsTr(app.trackerInfo.tString)
     }
 
     Canvas {
@@ -125,7 +128,7 @@ Item{
 
            ctx.beginPath();
            ctx.arc(c_x, c_y, radius, startAngle, progressAngle);
-           ctx.strokeStyle = Color.transparent(tracker.primaryColor, 0.5);
+           ctx.strokeStyle = miniProgressStrokeColor;
            ctx.stroke();
        }
 
