@@ -6,6 +6,7 @@ import QtQuick.Controls.Material 2.15
 import QtQuick.Shapes 1.3
 import Qt.labs.platform
 
+import "qrc:/QML/Controls"
 
 Page{
     id: reportView
@@ -34,6 +35,10 @@ Page{
             setY(app.y + app.height)
     }
 
+    Component.onCompleted: {
+        console.log("ReportView Pushed To Stack!!");
+    }
+
     onVisibleChanged: {
         if(visible){
             setWindowPosition()
@@ -43,11 +48,11 @@ Page{
         }
     }
 
-    Rectangle {
-        // background
-        anchors.fill: parent
-        color: Material.color(Material.Blue,Material.Shade600)
-    }
+//    Rectangle {
+//        // background
+//        anchors.fill: parent
+//        color: Material.color(Material.Blue,Material.Shade600)
+//    }
 
 
     function defaultData(){

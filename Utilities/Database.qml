@@ -3,6 +3,10 @@ import QtQuick 2.15
 Item {
     id: dbQueries
 
+    function createUUID(seed){
+
+    }
+
     function createDatabase(){
         app.database.transaction(
             function(tx) {
@@ -39,7 +43,7 @@ Item {
         insertEnd(tracked_time,workDescription.text)
     }
 
-    function getWorkHistory(limit=10){
+    function getRecentWorkHistory(limit=10){
         var data = [];
         app.database.transaction(
             function(tx){
@@ -51,12 +55,49 @@ Item {
                 ";
                 var rs = tx.executeSql(query,[limit])
                 for(var i=0;i<rs.rows.length;i++){
-                    var item = rs.rows.item(i)
-                    data.push(item);
+                    data.push(rs.rows.item(i));
                 }
             }
         )
         return data
+    }
+
+    function getJobHistory(jobTitle){
+        var data = [];
+        app.database.transaction(
+            function(tx){
+                var query = "
+                    SELECT * FROM TimeTracks
+                    WHERE work = ?
+                    ORDER BY start desc
+                ";
+
+                var rs = tx.executeSql(query,[jobTitle])
+                for(var i=0;i<rs.rows.length;i++){
+                    data.push(rs.rows.item(i));
+                }
+            }
+        );
+        return data;
+    }
+
+    function getLatestOfJob(jobTitle){
+        var data = [];
+        app.database.transaction(
+            function(tx){
+                var query = "
+                    SELECT * FROM TimeTracks
+                    WHERE work == ?
+                    ORDER BY start desc
+                    LIMIT 1
+                ";
+                var rs = tx.executeSql(query,[jobTitle])
+                if(rs.rows.length){
+                    data.push(rs.rows.item(0));
+                }
+            }
+        );
+        return data;
     }
 
     function filterByDate(limit=14){

@@ -1,0 +1,130 @@
+import QtCore
+import QtQuick 2.15
+import QtQuick.Layouts 1.15
+import QtQuick.Controls 2.15
+import QtQuick.Controls.Material 2.15
+import QtQuick.Effects
+import 'qrc:/QML/Controls'
+import 'qrc:/Utilities/Utils.js' as Util
+
+Page {
+    id: mainPage
+
+    signal startTracking()
+    signal openReports()
+
+    header: ToolBar{
+        Material.background: Material.color(Material.Grey,Material.Shade50)
+        Column{
+            anchors.fill: parent
+            HeadTitle{
+                radius: 0
+                MouseArea{
+                    anchors.fill: parent
+                    onClicked: {
+                        newJob.open()
+                    }
+
+                    HoverHandler {
+                        cursorShape: Qt.PointingHandCursor
+                    }
+                }
+            }
+        }
+    }
+
+    Component.onCompleted: {
+        console.log("MainWindow Build")
+    }
+
+    function prepareNewJob(title, description){
+        app.trackerInfo.jobTitle = title
+        app.trackerInfo.jobDesc = description
+    }
+
+    function linkToOldJob(jobInfo){
+        app.trackerInfo.jobTitle = jobInfo.work
+        app.trackerInfo.jobDesc = jobInfo.work
+    }
+
+    StartJobPrompt{
+        id: newJob
+        width: mainPage.width
+        height: mainPage.height/2
+
+        onStart: prepareNewJob(title, description)
+    }
+
+    Pane{
+        anchors.fill: parent
+        Column{
+            anchors.fill: parent
+            spacing: 3 * app.scaleFactor
+
+            Rectangle{
+                id: row1
+                width: parent.width
+                height: 30 * app.scaleFactor
+                color: Color.transparent(app.primaryColor,0.5)
+                radius: 5
+
+                TextTemplate{
+                    padding: 5
+                    text: 'Recent Work History'
+                }
+
+                TextTemplate{
+                    padding: 5
+                    text: 'View Reports'
+                    anchors.right: openReportBtn.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: openReportBtn.visible
+                    font.pointSize: 7 * app.scaleFactor
+                }
+
+                DumpReport{
+                    id: openReportBtn
+                    height: 30 * app.scaleFactor
+                    width: 30 * app.scaleFactor
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    imgSrc: "qrc:/Icons/dump.png"
+
+                    onOpenClicked: {
+                        openReports()
+                    }
+                }
+            }
+
+            HistoryTable{
+                id: history
+                width: parent.width
+                height: parent.height - row1.height
+                spacing: 3 * app.scaleFactor
+                showReplay: true
+                tableModel: app.dbOps.getRecentWorkHistory()
+
+                onReplayJob: {
+                    var rji = app.dbOps.getLatestOfJob(replayJobInfo.work)
+                    if(rji){
+                        rji = rji[0]
+                        if(Util.getDateString(app.today) === Util.getDateString(new Date(rji.start * 1000))){
+                            // start - update to db
+                            linkToOldJob(rji)
+                        }
+                        else{
+                            // use job title and desc to start - insert new to db
+                            prepareNewJob(rji.work,rji.work)
+                        }
+                    }else{
+                        // use job title and desc to start - insert new to db
+                        prepareNewJob(rji.work,rji.work)
+                    }
+
+
+                    startTracking()
+                }
+            }
+        }
+    }
+}

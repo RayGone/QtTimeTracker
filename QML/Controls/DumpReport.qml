@@ -1,6 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls.Material 2.15
-import "qrc:/Templates"
+import "qrc:/QML"
 
 Rectangle{
     id: report
@@ -29,17 +29,7 @@ Rectangle{
 
     MouseArea{
         anchors.fill: parent
-
-        ToolTip{
-            text: toolTipText
-            visible: hh.hovered && toolTipText
-            Material.background: Material.color(Material.LightBlue,Material.ShadeA200)
-        }
-
-        HoverHandler{
-            id: hh
-            cursorShape: Qt.PointingHandCursor
-        }
+        cursorShape: Qt.PointingHandCursor
 
         onClicked: {
             openClicked()

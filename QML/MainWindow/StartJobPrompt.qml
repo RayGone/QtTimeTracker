@@ -3,7 +3,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Dialogs
-import "qrc:/Templates"
+import "qrc:/QML/Controls"
 
 Drawer{
     id: newJob
@@ -12,6 +12,8 @@ Drawer{
     clip: true
 
     signal start()
+    property string title: jobTitle.text
+    property string description: jobDesc.text
 
     function keyEnterPressedHandler(event){
         if(event.key + Qt.EnterKeyReturn=== Qt.Key_Enter) startButton.clicked()
@@ -114,6 +116,8 @@ Drawer{
 
                     onClicked: {
                         newJob.close();
+                        app.trackerInfo.jobTitle = ''
+                        app.trackerInfo.jobDesc = ''
                     }
 
                     HoverHandler {

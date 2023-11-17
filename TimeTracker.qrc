@@ -8,27 +8,32 @@
         <file>Icons/play.png</file>
         <file>Icons/stop.png</file>
         <file>clock-vector.ico</file>
-        <file>SQL/Database.qml</file>
-        <file>Templates/MainWindow/MainWindow.qml</file>
-        <file>Templates/CloseWindow.qml</file>
-        <file>Templates/DumpReport.qml</file>
-        <file>Templates/Images.qml</file>
-        <file>Templates/MinimizeWindow.qml</file>
-        <file>Templates/MoveWindow.qml</file>
-        <file>Templates/Random.qml</file>
-        <file>Templates/ReportView.qml</file>
-        <file>Templates/TemplateBody.qml</file>
-        <file>Templates/TrackerDisplay.qml</file>
-        <file>Templates/TrackerFunctions.qml</file>
-        <file>Templates/WindowPeripheral.qml</file>
-        <file>Icons/jobs.png</file>
-        <file>Templates/Divider.qml</file>
-        <file>Templates/TextTemplate.qml</file>
-        <file>Templates/HeadTitle.qml</file>
-        <file>Templates/MainWindow/StartJobPrompt.qml</file>
-        <file>Templates/Ink.qml</file>
         <file>Icons/hourglass.gif</file>
         <file>Icons/left-arrow.png</file>
         <file>Icons/back.png</file>
+        <file>QML/Controls/CloseWindow.qml</file>
+        <file>QML/Controls/Divider.qml</file>
+        <file>QML/Controls/DumpReport.qml</file>
+        <file>QML/Controls/HeadTitle.qml</file>
+        <file>QML/Controls/Ink.qml</file>
+        <file>QML/Controls/MinimizeWindow.qml</file>
+        <file>QML/Controls/MoveWindow.qml</file>
+        <file>QML/Controls/TrackerDisplay.qml</file>
+        <file>QML/MainWindow/MainWindow.qml</file>
+        <file>QML/MainWindow/StartJobPrompt.qml</file>
+        <file>QML/Random.qml</file>
+        <file>QML/ReportView.qml</file>
+        <file>QML/TemplateBody.qml</file>
+        <file>QML/TrackerFunctions.qml</file>
+        <file>QML/WindowPeripheral.qml</file>
+        <file>QML/Controls/Images.qml</file>
+        <file>QML/Controls/TextTemplate.qml</file>
+        <file>Icons/jobs.png</file>
+        <file>app-icon.ico</file>
+        <file>Utilities/Database.qml</file>
+        <file>Utilities/Files.js</file>
+        <file>Utilities/Utils.js</file>
+        <file>QML/TrackerView.qml</file>
+        <file>QML/Controls/HistoryTable.qml</file>
     </qresource>
 </RCC>

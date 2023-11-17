@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import "qrc:/QML/Controls"
 
 Item{
     id: buttons

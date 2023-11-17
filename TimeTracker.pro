@@ -22,24 +22,24 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    SQL/Database.qml \
-    Templates/HeadTitle.qml \
-    Templates/Ink.qml \
-    Templates/MainWindow/MainWindow.qml \
-    Templates/MainWindow/StartJobPrompt.qml \
-    Templates/TextTemplate.qml \
-    config.xml \
-    Templates/CloseWindow.qml \
-    Templates/DumpReport.qml \
-    Templates/Images.qml \
-    Templates/Main.qml \
-    Templates/MinimizeWindow.qml \
-    Templates/MoveWindow.qml \
-    Templates/Random.qml \
-    Templates/ReportView.qml \
-    Templates/SQL/Database.qml \
-    Templates/TemplateBody.qml \
-    Templates/TrackerDisplay.qml \
-    Templates/TrackerFunctions.qml \
-    Templates/WindowPeripheral.qml
+    QML/Controls/CloseWindow.qml \
+    QML/Controls/Divider.qml \
+    QML/Controls/DumpReport.qml \
+    QML/Controls/HeadTitle.qml \
+    QML/Controls/HistoryTable.qml \
+    QML/Controls/Images.qml \
+    QML/Controls/Ink.qml \
+    QML/Controls/MinimizeWindow.qml \
+    QML/Controls/MoveWindow.qml \
+    QML/Controls/TextTemplate.qml \
+    QML/Controls/TrackerDisplay.qml \
+    QML/Images.qml \
+    QML/MainWindow/MainWindow.qml \
+    QML/MainWindow/StartJobPrompt.qml \
+    QML/Random.qml \
+    QML/ReportView.qml \
+    QML/TemplateBody.qml \
+    QML/TrackerFunctions.qml \
+    QML/TrackerView.qml \
+    QML/WindowPeripheral.qml \
 

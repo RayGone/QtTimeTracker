@@ -6,12 +6,14 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.LocalStorage 2.15
-
 //import Qt.labs.settings 1.1
 import Qt.labs.platform
-import "qrc:/Templates"
-import "qrc:/Templates/MainWindow"
-import "qrc:/SQL"
+import "qrc:/Utilities/Utils.js" as Util
+
+import "qrc:/QML/"
+import "qrc:/QML/Controls"
+import "qrc:/QML/MainWindow"
+import "qrc:/Utilities"
 import "qrc:/Icons"
 
 ApplicationWindow {
@@ -20,8 +22,14 @@ ApplicationWindow {
     width: 350 * scaleFactor
     height: 450 * scaleFactor
 
-    minimumWidth: 350 * scaleFactor
-    minimumHeight: 450 * scaleFactor
+    minimumWidth: width
+    minimumHeight: height
+
+    maximumWidth: width
+    maximumHeight: height
+
+    property real defaultAppWidth: 350 * scaleFactor
+    property real defaultAppHeight: 450 * scaleFactor
 
     visible: true
     title: qsTr("Time Tracker")
@@ -40,7 +48,9 @@ ApplicationWindow {
 
     property bool appClosed: false
     readonly property string fontFamily: 'Segoe Print'
+    readonly property string secondaryFontFamily: "Helvetica"
     property string primaryColor: Material.color(Material.LightBlue,Material.Shade900)
+    property string secondaryColor: Material.color(Material.Purple,Material.Shade900)
     property date today: new Date()
 
     property alias settings: settings
@@ -50,17 +60,28 @@ ApplicationWindow {
     QtObject{
         id: trackerInfo
 
-        // App Tracking States ----------
-        readonly property string flagIdle: 'state0'
-        readonly property string flagTracking: 'state1'
-        readonly property string flagStopped: 'state2'
+        // App Tracking State Flags----------
+        readonly property string flagIdle: 'track:no'
+        readonly property string flagTracking: 'track:running'
+        readonly property string flagPaused: 'track:paused'
 
-        //-------------
+        //------State Info-------
         property string tString: "TimeTracker"
         property int trackedTime: 0
         property bool currentlyTracking: false
-        property string state: ''
+        property string state: flagIdle
+        property string jobID: ''
+        property string jobTitle: ''
+        property string jobDesc: ''
 
+        onStateChanged: {
+            if(state === flagIdle){
+                trackedTime = 0
+                jobID = ''
+                jobTitle = ''
+                jobDesc = ''
+            }
+        }
     }
 
     Settings{
@@ -171,58 +192,24 @@ ApplicationWindow {
     Component{
         id: trackPage
 
-        Page{
+        TrackerView{
 
-            header: HeadTitle{textElem.text: "Current Job's Title"}
+            Component.onCompleted: {
+                htitle.textElem.text = "Current Job: <b>[" + app.trackerInfo.jobTitle + "]</b>"
+            }
 
-            Column{
-                anchors.fill: parent
+            onPauseTracking: {
+                app.trackerInfo.state = app.trackerInfo.flagPaused;
+            }
 
-                Row{
-                    width: parent.width
+            onContinueTracking: {
+                app.trackerInfo.state = app.trackerInfo.flagTracking;
+            }
 
-                    TrackerDisplay{
-                        id: trackerPage
-                        width: parent.width/2
-                        height: width
-                        diameter: width * 0.8
-                        visible: true
-                        primaryColor: app.primaryColor
-
-                        Connections{
-                            target: app.trackerInfo
-
-                            function onTrackedTimeChanged(){
-                                trackerPage.progressBar.nextStep((app.trackerInfo.trackedTime)/60)
-                            }
-                        }
-                    }
-
-                    Column{
-                        width: parent.width/2
-                        spacing: 5 * app.scaleFactor
-                        padding: {
-                            left: 10 * app.scaleFactor
-                        }
-
-                        Divider{
-                            width: parent.width
-                            height: 20 * app.scaleFactor
-                        }
-
-                        TextTemplate{
-                            text: "Continue"
-                        }
-
-                        TextTemplate{
-                            text: "Pause"
-                        }
-
-                        TextTemplate{
-                            text: "Stop"
-                        }
-                    }
-                }
+            onStopTracking: {
+                //Call DB function here to insert the final value
+                app.trackerInfo.state = app.trackerInfo.flagIdle;
+                view.pop();
             }
         }
     }
@@ -312,20 +299,20 @@ ApplicationWindow {
 //        }
 //    }
 
-    Timer{
-        id: trigger
-        running: !active
-        interval: 120000
-        repeat: true
-        onTriggered: {
-            if(trackerWindow.opacity === 0.4) trackerWindow.opacity = 0.2;
-            else {
-                if(!trackedTime) showMinimized();
-                console.log('App Inactive: Minimizing');
-                repeat = false
-            }
-        }
-    }
+//    Timer{
+//        id: trigger
+//        running: !active
+//        interval: 120000
+//        repeat: true
+//        onTriggered: {
+//            if(trackerWindow.opacity === 0.4) trackerWindow.opacity = 0.2;
+//            else {
+//                if(!trackedTime) showMinimized();
+//                console.log('App Inactive: Minimizing');
+//                repeat = false
+//            }
+//        }
+//    }
 
     Timer{
         id: tracker
@@ -335,7 +322,8 @@ ApplicationWindow {
 
         onTriggered:{
             app.trackerInfo.trackedTime += 1
-            app.trackerInfo.tString = computeTrackedReadableTimeString()
+            app.trackerInfo.tString = Util.computeTrackedReadableTimeString(app.trackerInfo.trackedTime)
+
 //            alertMsg.text = tString
 
 //            if(trackedTime == 1 || trackedTime%20 === 0)
@@ -359,15 +347,6 @@ ApplicationWindow {
         }
     }
 
-    function computeTrackedReadableTimeString(){
-        var m = parseInt(app.trackerInfo.trackedTime/60)
-        var s = app.trackerInfo.trackedTime - m*60
-        var h = parseInt(m/60)
-        m = m - h*60
-        return (h<10? "0"+h : h) + " : " + (m<10? "0"+m : m) + " : " + (s<10 ? "0"+s : s)
-    }
-
-
 
     //-----------
     // System Tray Icon
@@ -377,7 +356,7 @@ ApplicationWindow {
         id: systemTrayIcon
         visible: true
         icon.mask: true
-        icon.source: "qrc:/clock-vector.ico"
+        icon.source: "qrc:/app-icon.ico"
         tooltip: "TimeTracker"
         menu: Menu {
                 id: systemTrayMenu
@@ -385,16 +364,13 @@ ApplicationWindow {
 
                 MenuItem{
                     text: qsTr("Open App")
-                    visible: appClosed
                     //shortcut: StandardKey.Open
                     onTriggered: {
                         showMainWindow()
                     }
                 }
 
-                MenuSeparator{
-                    visible: appClosed
-                }
+                MenuSeparator{}
 
                 //                MenuItem{
                 //                    visible: !appClosed
