@@ -58,10 +58,11 @@ Window{
 
             anchors.fill: parent
             timeDisplayText.color: 'white'
+            timeDisplayText.font.pointSize: 10 * app.scaleFactor
             diameter: parent.width - 20
 
             miniProgressStrokeColor: app.primaryColor
-            property int majorLineWidth: 10
+            property int majorLineWidth: 6
             property int animationDuration: 1000
             //property var colorList: [
             //    Material.color(Material.Grey,Material.Shade900),

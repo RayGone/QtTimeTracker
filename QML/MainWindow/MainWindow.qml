@@ -37,14 +37,22 @@ Page {
         console.log("MainWindow Build")
     }
 
+    function refreshHistory(){
+        history.tableModel = app.dbOps.getRecentWorkHistory();
+    }
+
     function prepareNewJob(title, description){
         app.trackerInfo.jobTitle = title
         app.trackerInfo.jobDesc = description
+        startTracking()
     }
 
     function linkToOldJob(jobInfo){
-        app.trackerInfo.jobTitle = jobInfo.work
-        app.trackerInfo.jobDesc = jobInfo.work
+        app.trackerInfo.jobID = jobInfo.job_id
+        app.trackerInfo.jobTitle = jobInfo.job_title
+        app.trackerInfo.jobDesc = jobInfo.job_desc
+        app.trackerInfo.trackedTime = jobInfo.logged_time
+        startTracking()
     }
 
     StartJobPrompt{
@@ -105,10 +113,10 @@ Page {
                 tableModel: app.dbOps.getRecentWorkHistory()
 
                 onReplayJob: {
-                    var rji = app.dbOps.getLatestOfJob(replayJobInfo.work)
+                    var rji = app.dbOps.getLatestOfJob(replayJobInfo.job_title)
                     if(rji){
                         rji = rji[0]
-                        if(Util.getDateString(app.today) === Util.getDateString(new Date(rji.start * 1000))){
+                        if(Util.getDateString(app.today) === Util.getDateString(new Date(rji.work_date))){
                             // start - update to db
                             linkToOldJob(rji)
                         }
@@ -120,9 +128,6 @@ Page {
                         // use job title and desc to start - insert new to db
                         prepareNewJob(rji.work,rji.work)
                     }
-
-
-                    startTracking()
                 }
             }
         }

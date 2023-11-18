@@ -86,7 +86,7 @@ Column{
                     id: replayBtn
                     width: 0
                     clip: true
-                    height: parent.height
+                    height: roundBtn.height
                     anchors.right: parent.right
                     radius: 25
                     visible: showReplay
@@ -112,6 +112,7 @@ Column{
                     }
 
                     RoundButton{
+                        id: roundBtn
                         icon.source: 'qrc:/Icons/play.png'
                         icon.color: app.primaryColor
                         anchors.verticalCenter: parent.verticalCenter
@@ -140,7 +141,7 @@ Column{
                     TextTemplate{
                         id: dataTitle
                         width: parent.width/3
-                        text: modelData.work
+                        text: modelData.job_title
                         font.pointSize: 8 * app.scaleFactor
                         horizontalAlignment: Text.AlignLeft
                         padding: 2
@@ -149,7 +150,7 @@ Column{
                     TextTemplate{
                         id: dataDate
                         width: parent.width/3
-                        text: new Date(modelData.start * 1000).toLocaleDateString()
+                        text: new Date(modelData.work_date).toLocaleDateString()
                         font.pointSize: 6 * app.scaleFactor
                         horizontalAlignment: Text.AlignLeft
                         padding: 2
@@ -158,7 +159,7 @@ Column{
                     TextTemplate{
                         id: dataTime
                         width: parent.width/3
-                        text: Util.readableTimeString(modelData.tracked_time)
+                        text: Util.readableTimeString(modelData.logged_time)
                         font.pointSize: 8 * app.scaleFactor
                         horizontalAlignment: Text.AlignLeft
                         padding: {

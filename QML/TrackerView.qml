@@ -54,13 +54,12 @@ Page{
 
                     RoundButton{
                         id: continueBtn
-                        visible: false
+                        visible: app.trackerInfo.state === app.trackerInfo.flagPaused
                         icon.source: 'qrc:/Icons/play.png'
                         icon.color: app.primaryColor
                         Material.background: Color.transparent(app.primaryColor,0.5)
 
                         onClicked: {
-                            continueBtn.visible = false
                             continueTracking()
                         }
                     }
@@ -77,12 +76,11 @@ Page{
                         id: pauseBtn
                         icon.source: 'qrc:/Icons/pause.png'
                         icon.color: app.primaryColor
-                        visible: !continueBtn.visible
+                        visible: app.trackerInfo.state === app.trackerInfo.flagTracking
                         Material.background: Color.transparent(app.primaryColor,0.5)
 
                         onClicked: {
                             pauseTracking()
-                            continueBtn.visible = true
                         }
                     }
 

@@ -32,10 +32,6 @@ Item{
     property int minorLineWidth: majorLineWidth/2
 
     property int animationDuration: 1000
-    property var colorList: [
-        app.primaryColor,
-        Material.color(Material.Grey,Material.Shade100),
-    ]
 
     property int diameter: 50
     property color primaryColor: app.primaryColor
@@ -55,13 +51,11 @@ Item{
         miniProgress.degree = (t - parseInt(t))*360;
         if(!miniProgress.degree) miniProgress.degree = 1
 
-        if(seconds%60 == 1){
-            t = (seconds%3600)/3600;
-            majorProgress.degree = (t - parseInt(t))*360;
-            if(majorProgress.degree < 1) majorProgress.degree = 1
-        }
+        t = (seconds%3600)/3600;
+        majorProgress.degree = (t - parseInt(t))*360;
+        if(majorProgress.degree < 1) majorProgress.degree = 1
 
-        timeDisplayText.text = qsTr(app.trackerInfo.tString)
+        //timeDisplayText.text = qsTr(app.trackerInfo.tString)
     }
 
     Canvas {

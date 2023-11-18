@@ -9,6 +9,7 @@ function computeTrackedReadableTimeString(seconds){
 }
 
 function readableTimeString(seconds){
+    if(seconds < 60) return seconds+" seconds"
     var minutes = seconds / 3600
     var hours = parseInt(minutes)
     minutes = Math.ceil((minutes - hours) * 60)
@@ -23,4 +24,11 @@ function getDateString(dObj,format="YY-MM-DD"){
     var year = dObj.getFullYear()
 
     return format.replace("YY",year).replace("MM",month).replace("DD",date)
+}
+
+function generateUuid(){
+    return 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/[x]/g, (c) => {
+        const r = Math.floor(Math.random() * 16);
+        return r.toString(16);
+  });
 }

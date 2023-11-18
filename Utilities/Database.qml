@@ -3,22 +3,26 @@ import QtQuick 2.15
 Item {
     id: dbQueries
 
-    function createUUID(seed){
-
-    }
-
     function createDatabase(){
         app.database.transaction(
             function(tx) {
-                // Create the database if it doesn't already exist
+                // - Deprecated Query
                 //tx.executeSql('DROP TABLE TimeTracks')
-                tx.executeSql('CREATE TABLE IF NOT EXISTS TimeTracks(trackid INTEGER PRIMARY KEY AUTOINCREMENT, work TEXT, start TIMESTAMP, end TIMESTAMP, tracked_time INTEGER)');
+                //tx.executeSql('CREATE TABLE IF NOT EXISTS TimeTracks(trackid INTEGER PRIMARY KEY AUTOINCREMENT, work TEXT, start TIMESTAMP, end TIMESTAMP, tracked_time INTEGER)');
+
+                // - New Query
+                // Create the database if it doesn't already exist
+                //tx.executeSql('DROP TABLE IF EXISTS TimeLogs');
+                var query = "CREATE TABLE IF NOT EXISTS TimeLogs(id INTEGER PRIMARY KEY AUTOINCREMENT, job_id VARCHAR(50), job_title VARCHAR(50), job_desc VARCHAR(250), work_date TIMESTAMP default CURRENT_TIMESTAMP, logged_time INTEGER DEFAULT 0 )";
+                //console.log(query)
+                tx.executeSql(query);
             }
         )
         console.log('Database Initialized!!')
     }
 
-    function insertStart(work_desc = 'Work Item'){
+    // deprecated function
+    function insertStart(jobInfo){
         if(!work_desc) work_desc = "Work Item"
         app.database.transaction(
                     function(tx){
@@ -28,6 +32,7 @@ Item {
                     })
     }
 
+    // deprecated function
     function insertEnd(tracked_time = 1,work_desc){
         app.database.transaction(
                     function(tx){
@@ -38,9 +43,23 @@ Item {
                     })
     }
 
-    function saveTimeBeforeClose(){
-        if(tracked_time)
-        insertEnd(tracked_time,workDescription.text)
+    function startLog(jobInfo){
+        app.database.transaction(
+                    function(tx){
+                        var query = "INSERT INTO TimeLogs(job_id,job_title,job_desc) VALUES(?,?,?)"
+                        tx.executeSql(query,[jobInfo.jobID,jobInfo.jobTitle,jobInfo.jobDesc])
+                    }
+                )
+    }
+
+    function updateLog(jobInfo){
+        app.database.transaction(
+                    function(tx){
+                        var query = "UPDATE TimeLogs SET job_title = ?, job_desc = ?, logged_time = ? WHERE job_id = ?";
+                        tx.executeSql(query,[jobInfo.jobTitle,jobInfo.jobDesc,jobInfo.trackedTime,jobInfo.jobID]);
+                    }
+                );
+
     }
 
     function getRecentWorkHistory(limit=10){
@@ -48,9 +67,8 @@ Item {
         app.database.transaction(
             function(tx){
                 var query = "
-                    SELECT * FROM TimeTracks
-                    WHERE tracked_time > 60
-                    ORDER BY trackid DESC
+                    SELECT * FROM TimeLogs
+                    ORDER BY id DESC
                     LIMIT ?
                 ";
                 var rs = tx.executeSql(query,[limit])
@@ -67,9 +85,9 @@ Item {
         app.database.transaction(
             function(tx){
                 var query = "
-                    SELECT * FROM TimeTracks
-                    WHERE work = ?
-                    ORDER BY start desc
+                    SELECT * FROM TimeLogs
+                    WHERE job_title = ?
+                    ORDER BY work_date desc
                 ";
 
                 var rs = tx.executeSql(query,[jobTitle])
@@ -86,9 +104,9 @@ Item {
         app.database.transaction(
             function(tx){
                 var query = "
-                    SELECT * FROM TimeTracks
-                    WHERE work == ?
-                    ORDER BY start desc
+                    SELECT * FROM TimeLogs
+                    WHERE job_title == ?
+                    ORDER BY work_date desc
                     LIMIT 1
                 ";
                 var rs = tx.executeSql(query,[jobTitle])
