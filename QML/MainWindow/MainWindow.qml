@@ -1,7 +1,7 @@
 import QtCore
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
-import QtQuick.Controls 2.15
+import QtQuick.Controls
 import QtQuick.Controls.Material 2.15
 import QtQuick.Effects
 import 'qrc:/QML/Controls'
@@ -63,6 +63,16 @@ Page {
         onStart: prepareNewJob(title, description)
     }
 
+//    MonthGrid{
+//        id: calendar
+//        month: app.today.getMonth()
+//        year: app.today.getFullYear()
+
+//        function onClicked(date) {
+//            console.log(date)
+//        }
+//    }
+
     Pane{
         anchors.fill: parent
         Column{
@@ -119,15 +129,13 @@ Page {
                         if(Util.getDateString(app.today) === Util.getDateString(new Date(rji.work_date))){
                             // start - update to db
                             linkToOldJob(rji)
+                            return
                         }
-                        else{
-                            // use job title and desc to start - insert new to db
-                            prepareNewJob(rji.work,rji.work)
-                        }
-                    }else{
-                        // use job title and desc to start - insert new to db
-                        prepareNewJob(rji.work,rji.work)
                     }
+
+                    //-- ELSE ---
+                    // use job title and desc to start - insert new to db
+                    prepareNewJob(rji.job_title,rji.job_desc)
                 }
             }
         }

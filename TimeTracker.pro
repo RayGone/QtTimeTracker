@@ -23,6 +23,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 DISTFILES += \
     QML/Controls/CloseWindow.qml \
+    QML/Controls/DatePicker.qml \
     QML/Controls/Divider.qml \
     QML/Controls/DumpReport.qml \
     QML/Controls/HeadTitle.qml \
@@ -39,8 +40,8 @@ DISTFILES += \
     QML/MainWindow/StartJobPrompt.qml \
     QML/Random.qml \
     QML/ReportView.qml \
+    QML/ReportViewOLD.qml \
     QML/TemplateBody.qml \
-    QML/TrackerFunctions.qml \
     QML/TrackerView.qml \
     QML/WindowPeripheral.qml \
     Utilities/Database.qml \

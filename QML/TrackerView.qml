@@ -111,6 +111,11 @@ Page{
                     }
                 }
 
+                Divider{
+                    height: 5 * app.scaleFactor
+                    width: parent.width
+                }
+
                 TextField{
                     id: jobTitle
                     placeholderText: "Job Title"

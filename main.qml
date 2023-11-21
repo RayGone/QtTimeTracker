@@ -21,8 +21,8 @@ ApplicationWindow {
 
     //flags: //Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint
 
-    width: 350 * scaleFactor
-    height: 450 * scaleFactor
+    width: 380 * scaleFactor
+    height: 500 * scaleFactor
 
     minimumWidth: width
     minimumHeight: height
@@ -52,7 +52,7 @@ ApplicationWindow {
     readonly property string fontFamily: 'Segoe Print'
     readonly property string secondaryFontFamily: "Helvetica"
     property string primaryColor: Material.color(Material.LightBlue,Material.Shade900)
-    property string secondaryColor: Material.color(Material.Purple,Material.Shade900)
+    property string secondaryColor: Material.color(Material.LightBlue,Material.Shade400)
     property date today: new Date()
 
     property alias settings: settings

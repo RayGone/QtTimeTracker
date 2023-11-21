@@ -19,8 +19,11 @@ function readableTimeString(seconds){
 
 
 function getDateString(dObj,format="YY-MM-DD"){
+    dObj = new Date(dObj);
     var date = dObj.getDate()
+    date = date < 10 ? "0" + date : date
     var month = dObj.getMonth()+1
+    month = month < 10 ? "0" + month : month
     var year = dObj.getFullYear()
 
     return format.replace("YY",year).replace("MM",month).replace("DD",date)

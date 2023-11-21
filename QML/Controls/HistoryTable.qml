@@ -14,12 +14,14 @@ Column{
     property alias noHistoryInfo: noHistoryInfo
 
     Row{
-        width: parent.width
+        width: parent.width - 10
+        anchors.horizontalCenter: parent.horizontalCenter
         TextTemplate{
             width: parent.width/3
             text: "Job Title"
             font.pointSize: 8 * app.scaleFactor
             horizontalAlignment: Text.AlignLeft
+            padding: 2
         }
 
         TextTemplate{
@@ -27,6 +29,7 @@ Column{
             text: "Work Date"
             font.pointSize: 8 * app.scaleFactor
             horizontalAlignment: Text.AlignLeft
+            padding: 2
         }
 
         TextTemplate{
@@ -34,6 +37,7 @@ Column{
             text: "Worked Time"
             font.pointSize: 8 * app.scaleFactor
             horizontalAlignment: Text.AlignLeft
+            padding: 2
         }
     }
 
@@ -54,9 +58,10 @@ Column{
     ScrollView{
         id: historyList
         height: parent.height - 45 * app.scaleFactor
-        width: parent.width
+        width: parent.width - 10
         contentHeight: parent.height
-        contentWidth: parent.width
+        contentWidth: width
+        anchors.horizontalCenter: parent.horizontalCenter
         clip: true
 
         ListView{
@@ -66,6 +71,7 @@ Column{
             delegate: Item{
                 width: historyList.width
                 height: dataDate.height + 10
+                anchors.horizontalCenter: parent.horizontalCenter
 
                 MouseArea{
                     anchors.fill: parent
@@ -136,7 +142,7 @@ Column{
                 }
 
                 Row{
-                    anchors.fill: parent
+                    width: parent.width
 
                     TextTemplate{
                         id: dataTitle
@@ -162,11 +168,7 @@ Column{
                         text: Util.readableTimeString(modelData.logged_time)
                         font.pointSize: 8 * app.scaleFactor
                         horizontalAlignment: Text.AlignLeft
-                        padding: {
-                            top: 0
-                            left: 15 * app.scaleFactor
-                            bottom: 0
-                        }
+                        padding: 2
                     }
                 }
             }

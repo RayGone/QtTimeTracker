@@ -24,7 +24,6 @@
         <file>QML/Random.qml</file>
         <file>QML/ReportView.qml</file>
         <file>QML/TemplateBody.qml</file>
-        <file>QML/TrackerFunctions.qml</file>
         <file>QML/WindowPeripheral.qml</file>
         <file>QML/Controls/Images.qml</file>
         <file>QML/Controls/TextTemplate.qml</file>
@@ -36,5 +35,6 @@
         <file>QML/TrackerView.qml</file>
         <file>QML/Controls/HistoryTable.qml</file>
         <file>QML/FramelessWindow.qml</file>
+        <file>QML/Controls/DatePicker.qml</file>
     </qresource>
 </RCC>
