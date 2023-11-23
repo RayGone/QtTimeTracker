@@ -38,12 +38,9 @@ DISTFILES += \
     QML/Images.qml \
     QML/MainWindow/MainWindow.qml \
     QML/MainWindow/StartJobPrompt.qml \
-    QML/Random.qml \
     QML/ReportView.qml \
-    QML/ReportViewOLD.qml \
     QML/TemplateBody.qml \
     QML/TrackerView.qml \
-    QML/WindowPeripheral.qml \
     Utilities/Database.qml \
     Utilities/Files.js \
     Utilities/Utils.js

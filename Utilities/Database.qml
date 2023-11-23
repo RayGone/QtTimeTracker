@@ -118,6 +118,42 @@ Item {
         return data;
     }
 
+    function getReport(filter={'limit': 14,'groupby': false}){
+        var query = "SELECT job_title, job_desc, date(work_date) as work_date, sum(logged_time) as logged_time FROM TimeLogs WHERE";
+
+        if('limit' in filter){
+            query = query + " work_date > datetime(datetime('now','start of day'),'start of day','-:limit days')".replace(':limit',filter['limit']);
+        }
+
+        if('from' in filter || 'to' in filter){
+            query = query + " work_date >= datetime(':from') AND work_date <= datetime(':to')";
+            query.replace(':from',filter['from']);
+            query.replace(":to",filter['to']);
+        }
+
+        if(filter['groupby']){
+            query = query + " GROUP BY job_title";
+        }else{
+            query = query + " GROUP BY job_title, work_date";
+        }
+
+        query = query + " ORDER BY work_date DESC"
+
+        //console.log(query)
+        //console.log(JSON.stringify(filter))
+
+        var data = [];
+        app.database.transaction(
+                    function(tx){
+                        var rs = tx.executeSql(query);
+                        for(var i=0;i<rs.rows.length;i++){
+                            data.push(rs.rows.item(i));
+                        }
+                    });
+        return data;
+    }
+
+    //-----------------------------------
     function filterByDate(limit=14){
         app.database.transaction(
             function(tx){

@@ -13,7 +13,7 @@ Rectangle{
     property int year
 
     property int boxHeight: 25
-    property int boxWidth: 35
+    property int boxWidth: 25
 
     property date selectedDate: app.today
     property color textColor: 'white'
@@ -86,6 +86,8 @@ Rectangle{
                 width: calendar.boxWidth
                 opacity: model.month === dateGrid.month ? 1 : 0
                 color: (model.day === selectedDate.getDate() && model.month === selectedDate.getMonth()) ? app.secondaryColor : 'transparent'
+                border.color: (model.day === selectedDate.getDate() && model.month === selectedDate.getMonth()) ? Color.transparent(app.secondaryColor,0.5) : 'transparent'
+                border.width: 2
                 radius: width
                 TextTemplate{
                     anchors.centerIn: parent

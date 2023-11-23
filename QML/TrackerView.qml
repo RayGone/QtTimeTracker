@@ -54,7 +54,7 @@ Page{
 
                     RoundButton{
                         id: continueBtn
-                        visible: app.trackerInfo.state === app.trackerInfo.flagPaused
+                        visible: app.trackerInfo.isPaused()
                         icon.source: 'qrc:/Icons/play.png'
                         icon.color: app.primaryColor
                         Material.background: Color.transparent(app.primaryColor,0.5)
@@ -76,7 +76,7 @@ Page{
                         id: pauseBtn
                         icon.source: 'qrc:/Icons/pause.png'
                         icon.color: app.primaryColor
-                        visible: app.trackerInfo.state === app.trackerInfo.flagTracking
+                        visible: app.trackerInfo.isRunning()
                         Material.background: Color.transparent(app.primaryColor,0.5)
 
                         onClicked: {

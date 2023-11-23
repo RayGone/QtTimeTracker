@@ -10,6 +10,8 @@ Window{
     opacity: 0.3
     color: 'transparent'
 
+    signal changeState()
+
     Component.onCompleted: {
         setX(Screen.width - (width + 10 * app.scaleFactor))
         setY(Screen.height - (height + 50 * app.scaleFactor))
@@ -30,20 +32,24 @@ Window{
         property double prevX
         property double prevY
 
-         onPressed: {
-             prevX = mouseX
-             prevY = mouseY
-         }
+        onDoubleClicked: {
+            changeState()
+        }
 
-         onMouseXChanged: {
-             var dx = mouseX - prevX
-             frameless.setX(frameless.x + dx)
-         }
+        onPressed: {
+            prevX = mouseX
+            prevY = mouseY
+        }
 
-         onMouseYChanged: {
-             var dy = mouseY - prevY
-             frameless.setY(frameless.y + dy)
-         }
+        onMouseXChanged: {
+            var dx = mouseX - prevX
+            frameless.setX(frameless.x + dx)
+        }
+
+        onMouseYChanged: {
+            var dy = mouseY - prevY
+            frameless.setY(frameless.y + dy)
+        }
     }
 
     TemplateBody{

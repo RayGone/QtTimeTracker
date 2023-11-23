@@ -80,19 +80,29 @@ Column{
 
                     onEntered: {
                         replayBtn.width = 60 * app.scaleFactor
+                        background.color = '#eee'
                     }
 
                     onExited: {
                         if(!replayBtn.hoverSemaphore)
                             replayBtn.width = 0
+
+                        background.color = 'transparent'
                     }
+                }
+
+                Rectangle{
+                    id: background
+
+                    anchors.fill: parent
+                    color: 'transparent'
                 }
 
                 Rectangle{
                     id: replayBtn
                     width: 0
                     clip: true
-                    height: roundBtn.height
+                    height: parent.height//roundBtn.height
                     anchors.right: parent.right
                     radius: 25
                     visible: showReplay
@@ -119,6 +129,8 @@ Column{
 
                     RoundButton{
                         id: roundBtn
+                        height: parent.height
+                        width: parent.height
                         icon.source: 'qrc:/Icons/play.png'
                         icon.color: app.primaryColor
                         anchors.verticalCenter: parent.verticalCenter
@@ -143,6 +155,7 @@ Column{
 
                 Row{
                     width: parent.width
+                    anchors.verticalCenter: parent.verticalCenter
 
                     TextTemplate{
                         id: dataTitle

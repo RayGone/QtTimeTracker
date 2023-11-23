@@ -44,10 +44,6 @@ ApplicationWindow {
     property real current_track_rowid: -1
     readonly property alias dbOps: dbOps
 
-//    readonly property alias trackerProgress: secondaryContent.progressBar
-//    readonly property alias workDescription: appContent.workDescription
-//    readonly property alias alertMsg: mainContent.alertMsg
-
     property bool appClosed: false
     readonly property string fontFamily: 'Segoe Print'
     readonly property string secondaryFontFamily: "Helvetica"
@@ -76,7 +72,7 @@ ApplicationWindow {
         property string jobDesc: ''
 
         function changeStateIdle(){
-            if(state !== flagIdle){                
+            if(!isIdle()){
                 dbOps.updateLog(app.trackerInfo) //log before exiting the app
                 var msg = "You have stopped logging your time for the job ["+app.trackerInfo.jobTitle + "]"
                 systemTrayIcon.showMessage("Job Stopped!!",msg)
@@ -90,16 +86,28 @@ ApplicationWindow {
         }
 
         function changeStateTracking(){
-            if(state !== flagTracking)
+            if(!isRunning())
                 state = flagTracking
         }
 
         function changeStatePaused(){
-            if(state !== flagPaused){
+            if(!isPaused()){
                 //var msg = "You have paused logging your time for the job ["+app.trackerInfo.jobTitle + "]\nContinue when ready!!!"
                 //systemTrayIcon.showMessage("Tracking Paused!!",msg)
                 state = flagPaused
             }
+        }
+
+        function isRunning(){
+            return state === flagTracking
+        }
+
+        function isPaused(){
+            return state === flagPaused
+        }
+
+        function isIdle(){
+            return state === flagIdle
         }
     }
 
@@ -109,6 +117,12 @@ ApplicationWindow {
             systemTrayIcon.showMessage("App Running In Background!!!","You can access the app menu on system tray on task bar menu.")
         }
         appClosed = true
+    }
+
+    Component.onDestruction: {
+        if(!app.trackerInfo.isIdle()){
+            dbOps.updateLog(app.trackerInfo);
+        }
     }
 
     Component.onCompleted: {
@@ -238,7 +252,20 @@ ApplicationWindow {
 
         height: app.width/3
         width: app.width/3
-        visible: app.appClosed && (app.trackerInfo.state != app.trackerInfo.flagIdle)
+        visible: app.appClosed && !app.trackerInfo.isIdle()
+
+        onChangeState: {
+            if(app.trackerInfo.isRunning()){
+                app.trackerInfo.changeStatePaused()
+                systemTrayIcon.showMessage("Tracker Paused!!","You may find the app menu on the task bar icon or double click on the floating tracker to resume.")
+            }
+            else if(app.trackerInfo.isPaused()){
+                app.trackerInfo.changeStateTracking()
+            }
+            else{
+                console.log(app.trackerInfo.state)
+            }
+        }
     }
 
     /*
@@ -283,7 +310,7 @@ ApplicationWindow {
         id: tracker
         interval: 1000
         repeat: true
-        running: app.trackerInfo.state === app.trackerInfo.flagTracking
+        running: app.trackerInfo.isRunning()
 
         onTriggered:{
             if(app.trackerInfo.trackedTime%60 == 0){
@@ -312,7 +339,7 @@ ApplicationWindow {
 
     Timer{
         id: pauseFlash
-        running: app.trackerInfo.state === app.trackerInfo.flagPaused
+        running: app.trackerInfo.isPaused()
         repeat: true
         interval: 3000
 
