@@ -1,25 +1,24 @@
 import QtQuick 2.15
 import QtQuick.Controls.Material 2.15
-import "../"
+import "qrc:/QML"
 
 Rectangle{
     id: report
     width: 20
     height: 20
     radius: width/2
-    visible: main.active
-    anchors.right: parent.right
-    anchors.bottom: parent.bottom
     color: Material.color(Material.Blue,Material.Shade700)
-    border.color: Material.color(Material.Blue,Material.Shade900)
+    border.color: app.primaryColor
     border.width: 3
     clip: true
 
-    property string dumpLocation: main.settings.value("report-dump-locaton","file:///D:")
+    property string dumpLocation: app.settings.value("report-dump-locaton","file:///D:")
     property string imgSrc: ""
+    property string toolTipText: "View Reports"
 
-    signal dumpReport()
+    signal openClicked()
     signal fileSaved()
+
 
     Image{
         width: parent.width
@@ -30,9 +29,10 @@ Rectangle{
 
     MouseArea{
         anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
 
         onClicked: {
-            dumpReport()
+            openClicked()
         }
 
         onDoubleClicked: {
@@ -44,7 +44,7 @@ Rectangle{
 
     function dumpData(){
         var csv_string = "";
-        main.database.transaction(
+        app.database.transaction(
             function(tx){
                 // var rs = tx.executeSql("SELECT trackid as SN,work as Work_Description, date(datetime(datetime(start,'unixepoch'),'localtime')) as Started_At, date(datetime(datetime(end,'unixepoch'),'localtime')) as Ended_At, tracked_time as Tracked_Seconds FROM TimeTracks")
                 var query = "

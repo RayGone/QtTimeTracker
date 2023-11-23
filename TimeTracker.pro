@@ -8,6 +8,8 @@ resources.prefix = /$${TARGET}
 RESOURCES += resources \
     TimeTracker.qrc
 
+win32:RC_ICONS += app-icon.ico
+
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
 
@@ -20,15 +22,26 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    templates/CloseWindow.qml \
-    templates/DumpReport.qml \
-    templates/Images.qml \
-    templates/Main.qml \
-    templates/MinimizeWindow.qml \
-    templates/MoveWindow.qml \
-    templates/Random.qml \
-    templates/ReportView.qml \
-    templates/TemplateBody.qml \
-    templates/TrackerDisplay.qml \
-    templates/WindowPeripheral.qml
+    QML/Controls/CloseWindow.qml \
+    QML/Controls/DatePicker.qml \
+    QML/Controls/Divider.qml \
+    QML/Controls/DumpReport.qml \
+    QML/Controls/HeadTitle.qml \
+    QML/Controls/HistoryTable.qml \
+    QML/Controls/Images.qml \
+    QML/Controls/Ink.qml \
+    QML/Controls/MinimizeWindow.qml \
+    QML/Controls/MoveWindow.qml \
+    QML/Controls/TextTemplate.qml \
+    QML/Controls/TrackerDisplay.qml \
+    QML/FramelessWindow.qml \
+    QML/Images.qml \
+    QML/MainWindow/MainWindow.qml \
+    QML/MainWindow/StartJobPrompt.qml \
+    QML/ReportView.qml \
+    QML/TemplateBody.qml \
+    QML/TrackerView.qml \
+    Utilities/Database.qml \
+    Utilities/Files.js \
+    Utilities/Utils.js
 
