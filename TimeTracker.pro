@@ -1,3 +1,4 @@
+QT += core
 QT += quick
 
 SOURCES += \
@@ -32,6 +33,7 @@ DISTFILES += \
     QML/Controls/Ink.qml \
     QML/Controls/MinimizeWindow.qml \
     QML/Controls/MoveWindow.qml \
+    QML/Controls/TemplateBody.qml \
     QML/Controls/TextTemplate.qml \
     QML/Controls/TrackerDisplay.qml \
     QML/FramelessWindow.qml \

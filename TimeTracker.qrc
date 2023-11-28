@@ -33,6 +33,6 @@
         <file>QML/Controls/HistoryTable.qml</file>
         <file>QML/FramelessWindow.qml</file>
         <file>QML/Controls/DatePicker.qml</file>
-        <file>QML/TemplateBody.qml</file>
+        <file>QML/Controls/TemplateBody.qml</file>
     </qresource>
 </RCC>

@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import "qrc:/Utilities/Utils.js" as Util
 
 Item {
     id: dbQueries
@@ -21,32 +22,10 @@ Item {
         console.log('Database Initialized!!')
     }
 
-    // deprecated function
-    function insertStart(jobInfo){
-        if(!work_desc) work_desc = "Work Item"
-        app.database.transaction(
-                    function(tx){
-                        tx.executeSql("INSERT INTO TimeTracks(work,start,end,tracked_time) VALUES (?,strftime('%s'),strftime('%s'),0)",[work_desc])
-
-                        tx.executeSql("SELECT last_insert_rowid() as id")
-                    })
-    }
-
-    // deprecated function
-    function insertEnd(tracked_time = 1,work_desc){
-        app.database.transaction(
-                    function(tx){
-                        var rs = tx.executeSql("SELECT trackid FROM TimeTracks ORDER BY trackid DESC LIMIT 1")
-                        var id = rs.rows.item(0)['trackid']
-
-                        tx.executeSql("UPDATE TimeTracks SET tracked_time = ?, work = ?, end = strftime('%s') WHERE trackid=?",[tracked_time,work_desc,id])
-                    })
-    }
-
     function startLog(jobInfo){
         app.database.transaction(
                     function(tx){
-                        var query = "INSERT INTO TimeLogs(job_id,job_title,job_desc) VALUES(?,?,?)"
+                        var query = "INSERT INTO TimeLogs(job_id,job_title,job_desc,work_date) VALUES(?,?,?,datetime(CURRENT_TIMESTAMP,'localtime'))"
                         tx.executeSql(query,[jobInfo.jobID,jobInfo.jobTitle,jobInfo.jobDesc])
                     }
                 )
@@ -100,41 +79,28 @@ Item {
     }
 
     function getLatestOfJob(jobTitle){
-        var data = [];
-        app.database.transaction(
-            function(tx){
-                var query = "
-                    SELECT * FROM TimeLogs
-                    WHERE job_title == ?
-                    ORDER BY work_date desc
-                    LIMIT 1
-                ";
-                var rs = tx.executeSql(query,[jobTitle])
-                if(rs.rows.length){
-                    data.push(rs.rows.item(0));
-                }
-            }
-        );
+        var data = getJobHistory(jobTitle);
+        if(data.length) data = data[0];
         return data;
     }
 
-    function getReport(filter={'limit': 14,'groupby': false}){
+    function getReport(filter={'limit': 14,'flagGroupByJob': false}){
         var query = "SELECT job_title, job_desc, date(work_date) as work_date, sum(logged_time) as logged_time FROM TimeLogs WHERE";
 
         if('limit' in filter){
             query = query + " work_date > datetime(datetime('now','start of day'),'start of day','-:limit days')".replace(':limit',filter['limit']);
         }
 
-        if('from' in filter || 'to' in filter){
+        if('viewFromDate' in filter || 'viewUptoDate' in filter){
             query = query + " work_date >= datetime(':from') AND work_date <= datetime(':to')";
-            query.replace(':from',filter['from']);
-            query.replace(":to",filter['to']);
+            query = query.replace(':from',Util.getDateString(filter['viewFromDate']));
+            query = query.replace(":to",Util.getDateString(Util.dateInvterval(filter['viewUptoDate'],1)));
         }
 
-        if(filter['groupby']){
+        if(filter['flagGroupByJob']){
             query = query + " GROUP BY job_title";
         }else{
-            query = query + " GROUP BY job_title, work_date";
+            query = query + " GROUP BY job_title, date(work_date)";
         }
 
         query = query + " ORDER BY work_date DESC"

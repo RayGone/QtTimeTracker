@@ -1,4 +1,5 @@
 import QtCore
+import QtQml 2.15
 import QtQuick 2.15
 import QtQuick.Controls
 import QtQuick.Layouts 1.15
@@ -14,6 +15,7 @@ Page{
     id: reportView
 
     signal back()
+    signal startTracking()
 
     header: ToolBar{
         Material.background: app.primaryColor
@@ -37,17 +39,25 @@ Page{
         }
     }
 
-    property bool groupby: false
-    property date fromDate: app.today
-    property date toDate: app.today
+    QtObject{
+        id: reportFilter
+        objectName: "Report_Filter_Model"
 
+        property bool flagGroupByJob: false
+        property date viewFromDate: Util.dateInvterval(app.today,-14)
+        property date viewUptoDate: app.today
+    }
 
     Component.onCompleted: {
-        console.log("ReportView Pushed To Stack!!");
-        var data = app.dbOps.getReport();
+        refreshReportTable();
+    }
+
+    /*------------------------------
+      --------Helper functions ----------
+      ------------------------------*/
+    function refreshReportTable(){
+        var data = app.dbOps.getReport(reportFilter)
         if(data.length){
-            toDate = data[0]['work_date'];
-            fromDate = data[data.length-1]['work_date'];
             workReports.tableModel = data;
         }
         setTotalTime(data)
@@ -60,6 +70,37 @@ Page{
         }
        totalLog.text =  Util.readableTimeString(total_time)
     }
+
+    function prepareNewJob(title, description){
+        app.trackerInfo.jobTitle = title
+        app.trackerInfo.jobDesc = description
+        startTracking()
+    }
+
+    function linkToOldJob(jobInfo){
+        app.trackerInfo.jobID = jobInfo.job_id
+        app.trackerInfo.jobTitle = jobInfo.job_title
+        app.trackerInfo.jobDesc = jobInfo.job_desc
+        app.trackerInfo.trackedTime = jobInfo.logged_time
+        startTracking()
+    }
+
+    function saveFile(fileUrl, text, callback) {
+        var request = new XMLHttpRequest();
+        request.open("PUT", fileUrl, true);
+        request.onreadystatechange = function(){
+            if(request.readyState == request.DONE){
+                callback()
+            }
+        }
+        request.send(text);
+
+        return request.status;
+    }
+
+    /*------------------------------
+      --------Non GUI Items----------
+      ------------------------------*/
 
     FolderDialog{
         id: fd
@@ -77,6 +118,10 @@ Page{
         fileMode: FileDialog.SaveFile
     }
 
+    /*------------------------------
+      --------GUI Items----------
+      ------------------------------*/
+
     Column{
         id: mainCol
         width: parent.width
@@ -91,7 +136,7 @@ Page{
             id: groupByJob
             text: "Group By Job Title"
             Material.accent: app.primaryColor
-            checked: groupby
+            checked: reportFilter.flagGroupByJob
             leftPadding: 20 * app.scaleFactor
 
             contentItem: TextTemplate{
@@ -101,7 +146,8 @@ Page{
             }
 
             onToggled: {
-                groupby = checked
+                reportFilter.flagGroupByJob = checked
+                refreshReportTable();
             }
 
         }
@@ -127,7 +173,7 @@ Page{
                     id: fromDateText
                     anchors.centerIn: parent
                     font.pointSize: 8 * app.scaleFactor
-                    text: Util.getDateString(reportView.fromDate)
+                    text: Util.getDateString(reportFilter.viewFromDate)
                     font.family: app.secondaryFontFamily
                     font.bold: Font.DemiBold
                     color: 'white'
@@ -139,7 +185,7 @@ Page{
                     anchors.fill: parent
                     onClicked:{
                         datePickerPopup.open()
-                        datePicker.selectedDate = fromDate
+                        datePicker.selectedDate = reportFilter.viewFromDate
                         datePickerPopup.changeDate = datePickerPopup.changeFromDate
                     }
 
@@ -162,7 +208,7 @@ Page{
                     id: toDateText
                     anchors.centerIn: parent
                     font.pointSize: 8 * app.scaleFactor
-                    text: Util.getDateString(reportView.toDate)
+                    text: Util.getDateString(reportFilter.viewUptoDate)
                     font.family: app.secondaryFontFamily
                     font.bold: Font.DemiBold
                     color: 'white'
@@ -174,7 +220,7 @@ Page{
                     anchors.fill: parent
                     onClicked: {
                         datePickerPopup.open()
-                        datePicker.selectedDate = reportView.toDate
+                        datePicker.selectedDate = reportFilter.viewUptoDate
                         datePickerPopup.changeDate = datePickerPopup.changeToDate
                     }
 
@@ -198,7 +244,9 @@ Page{
 
             TextTemplate{
                 id: totalLog
+                //font.family: app.secondaryFontFamily
                 font.pointSize: 8 * app.scaleFactor
+                font.bold: true
                 text: 'X hours'
                 horizontalAlignment: Text.AlignLeft
             }
@@ -264,22 +312,30 @@ Page{
             spacing: 3 * app.scaleFactor
             showReplay: true
 
-            tableModel: []
-        }
-    }
+            tableModel: []            
 
-    function saveFile(fileUrl, text, callback) {
-        var request = new XMLHttpRequest();
-        request.open("PUT", fileUrl, true);
-        request.onreadystatechange = function(){
-            if(request.readyState == request.DONE){
-                callback()
+            onReplayJob: {
+                var rji = app.dbOps.getLatestOfJob(replayJobInfo.job_title)
+                if(rji){
+                    rji = rji[0]
+                    if(Util.getDateString(app.today) === Util.getDateString(new Date(rji.work_date))){
+                        // start - update to db
+                        linkToOldJob(rji)
+                        return
+                    }
+                }
+
+                //-- ELSE ---
+                // use job title and desc to start - insert new to db
+                prepareNewJob(rji.job_title,rji.job_desc)
             }
         }
-        request.send(text);
-
-        return request.status;
     }
+
+
+    /*------------------------------
+      --------Popup Items----------
+      ------------------------------*/
 
     Popup{
         id: datePickerPopup
@@ -304,22 +360,23 @@ Page{
             //Don't Set height and width - instead set boxWidth: and boxHeight:
             onDatePicked: {
                 if(datePickerPopup.changeDate === datePickerPopup.changeFromDate){
-                    if(reportView.toDate < datePicker.selectedDate){
-                        systemTrayIcon.showMessage("Invalid Date Selection!!","Please select a date before the date set on To Date: "+Util.getDateString(reportView.toDate));
-                         datePicker.selectedDate = reportView.fromDate
+                    if(reportFilter.viewUptoDate < datePicker.selectedDate){
+                        systemTrayIcon.showMessage("Invalid Date Selection!!","Please select a date before the date set on To Date: "+Util.getDateString(reportFilter.viewUptoDate));
+                         datePicker.selectedDate = reportFilter.viewFromDate
                         return;
                     }
 
-                    reportView.fromDate = datePicker.selectedDate
+                    reportFilter.viewFromDate = datePicker.selectedDate
                 }else{
-                    if(reportView.fromDate > datePicker.selectedDate){
-                        systemTrayIcon.showMessage("Invalid Date Selection!!","Please select a date after the date set on From Date: "+Util.getDateString(reportView.fromDate));
-                         datePicker.selectedDate = reportView.toDate
+                    if(reportFilter.viewFromDate > datePicker.selectedDate){
+                        systemTrayIcon.showMessage("Invalid Date Selection!!","Please select a date after the date set on From Date: "+Util.getDateString(reportFilter.viewFromDate));
+                         datePicker.selectedDate = reportFilter.viewUptoDate
                         return;
                     }
-                    reportView.toDate = datePicker.selectedDate
+                    reportFilter.viewUptoDate = datePicker.selectedDate
                 }
-                datePickerPopup.close()
+                datePickerPopup.close();
+                refreshReportTable();
             }
         }
     }

@@ -3,6 +3,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 import "qrc:/QML/Controls"
+import "qrc:/Utilities/Utils.js" as Util
 
 Page{
     id: trackerView
@@ -14,6 +15,8 @@ Page{
     header: HeadTitle{
             id: htitle
             radius: 0
+
+            textElem.text: app.trackerInfo.jobTitle
         }
 
     Connections{
@@ -21,7 +24,24 @@ Page{
 
         function onTrackedTimeChanged(){
             trackerClock.nextStep(app.trackerInfo.trackedTime)
+
+            if(app.trackerInfo.trackedTime%60 == 1){ // here we check for 1 because the db update is bit delayed.
+                history.tableModel = app.dbOps.getJobHistory(app.trackerInfo.jobTitle);
+            }
         }
+
+        function onJobTitleChanged(){
+            htitle.textElem.text = "Current Job: <b>[" + app.trackerInfo.jobTitle + "]</b>"
+        }
+    }
+
+    function setTotalLog(){
+        var total = 0;
+        for(var i in history.tableModel){
+            total += history.tableModel[i]['logged_time']
+        }
+
+        totalLogText.text = "Total: " + Util.readableTimeString(total);
     }
 
     Column{
@@ -162,6 +182,13 @@ Page{
                     padding: 5
                     text: 'Work History'
                 }
+
+                TextTemplate{
+                    id: totalLogText
+                    padding: 5
+                    anchors.right: parent.right
+                    text: "Total: 0 hours"
+                }
             }
         }
 
@@ -174,6 +201,10 @@ Page{
             tableModel: app.dbOps.getJobHistory(app.trackerInfo.jobTitle)
 
             noHistoryInfo.text: 'No Previous History Of This Job!!!'
+
+            onTableModelChanged: {
+                setTotalLog();
+            }
         }
     }
 }

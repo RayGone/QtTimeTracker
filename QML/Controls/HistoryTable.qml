@@ -70,7 +70,7 @@ Column{
             model: tableModel
             delegate: Item{
                 width: historyList.width
-                height: dataDate.height + 10
+                height: roundBtn.height
                 anchors.horizontalCenter: parent.horizontalCenter
 
                 MouseArea{
@@ -102,7 +102,7 @@ Column{
                     id: replayBtn
                     width: 0
                     clip: true
-                    height: parent.height//roundBtn.height
+                    height: roundBtn.height
                     anchors.right: parent.right
                     radius: 25
                     visible: showReplay
@@ -129,13 +129,11 @@ Column{
 
                     RoundButton{
                         id: roundBtn
-                        height: parent.height
-                        width: parent.height
                         icon.source: 'qrc:/Icons/play.png'
                         icon.color: app.primaryColor
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.left: parent.left
-                        Material.background: Material.color(Material.Grey,Material.Shade100)
+                        Material.background: Color.transparent(Material.color(Material.Grey,Material.Shade100),0.7)
 
                         onClicked: {
                             replayJobInfo = modelData;
@@ -163,6 +161,7 @@ Column{
                         text: modelData.job_title
                         font.pointSize: 8 * app.scaleFactor
                         horizontalAlignment: Text.AlignLeft
+                        verticalAlignment: Text.AlignVCenter
                         padding: 2
                     }
 
@@ -170,8 +169,9 @@ Column{
                         id: dataDate
                         width: parent.width/3
                         text: new Date(modelData.work_date).toLocaleDateString()
-                        font.pointSize: 6 * app.scaleFactor
+                        font.pointSize: 8 * app.scaleFactor
                         horizontalAlignment: Text.AlignLeft
+                        verticalAlignment: Text.AlignVCenter
                         padding: 2
                     }
 
@@ -181,6 +181,7 @@ Column{
                         text: Util.readableTimeString(modelData.logged_time)
                         font.pointSize: 8 * app.scaleFactor
                         horizontalAlignment: Text.AlignLeft
+                        verticalAlignment: Text.AlignVCenter
                         padding: 2
                     }
                 }
