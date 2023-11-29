@@ -2,8 +2,8 @@
 <Package>
     <DisplayName>TimeTracker</DisplayName>
     <Description>TimeTracker App</Description>
-    <Version>1.0.0-1</Version>
-    <ReleaseDate>2023-11-06</ReleaseDate>
+    <Version>1.0.1-1</Version>
+    <ReleaseDate>2023-11-29</ReleaseDate>
     <Licenses>
         <License name="Beer Public License Agreement" file="license.txt" />
     </Licenses>
