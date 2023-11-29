@@ -37,6 +37,16 @@ Page {
         console.log("MainWindow Build")
     }
 
+    Connections{
+        target: app.trackerInfo
+
+        function onStateChanged(){
+            if(app.trackerInfo.isIdle()){
+                refreshHistory();
+            }
+        }
+    }
+
     function refreshHistory(){
         history.tableModel = app.dbOps.getRecentWorkHistory();
     }
@@ -120,12 +130,11 @@ Page {
                 height: parent.height - row1.height
                 spacing: 3 * app.scaleFactor
                 showReplay: true
-                tableModel: app.dbOps.getRecentWorkHistory()
+                tableModel: []
 
                 onReplayJob: {
                     var rji = app.dbOps.getLatestOfJob(replayJobInfo.job_title)
                     if(rji){
-                        rji = rji[0]
                         if(Util.getDateString(app.today) === Util.getDateString(new Date(rji.work_date))){
                             // start - update to db
                             linkToOldJob(rji)

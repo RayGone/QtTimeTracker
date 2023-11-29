@@ -4,7 +4,7 @@ import QtQuick.Shapes 1.3
 
 Rectangle{
     id: rect
-    color: Material.color(Material.Red,Material.Shade900)
+    color: app.primaryColor
     // I want to use conical ConicalGradient or RadialGradient
     gradient: RadialGradient {
         GradientStop { position: 0.0; color: Material.color(Material.Blue,Material.Shade600) }

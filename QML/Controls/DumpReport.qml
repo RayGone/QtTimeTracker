@@ -12,7 +12,7 @@ Rectangle{
     border.width: 3
     clip: true
 
-    property string dumpLocation: app.settings.value("report-dump-locaton","file:///D:")
+    property string dumpLocation: app.settings.value("report-dump-locaton","file:///C:")
     property string imgSrc: ""
     property string toolTipText: "View Reports"
 

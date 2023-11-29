@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <Installer>
+     <Name>TimeTracker</Name>
+     <Version>1.0.1</Version>
+     <Title>TimeTracker</Title>
+     <Publisher>GrayAtom</Publisher>
+     <StartMenuDir>Atomic Apps</StartMenuDir>
+     <TargetDir>@HomeDir@/TimeTracker</TargetDir>
+ </Installer>

@@ -12,6 +12,11 @@ Window{
 
     signal changeState()
 
+    onActiveChanged: {
+        if(active) opacity = 0.5
+        else opacity = 0.3
+    }
+
     Component.onCompleted: {
         setX(Screen.width - (width + 10 * app.scaleFactor))
         setY(Screen.height - (height + 50 * app.scaleFactor))
@@ -34,6 +39,7 @@ Window{
 
         onDoubleClicked: {
             changeState()
+            animation.width = frameless.width;
         }
 
         onPressed: {
@@ -58,6 +64,34 @@ Window{
         anchors.fill: parent
         anchors.centerIn: parent
         radius: width/2
+
+        Rectangle{
+            id: animation
+            width: 0
+            height: width
+            radius: width/2
+            anchors.centerIn: parent
+            color: app.secondaryColor
+
+            Behavior on width{
+                NumberAnimation{
+                    target: animation
+                    property: 'width'
+                    duration: 100
+                    easing.type: Easing.InCubic//Easing.InOutQuad
+                }
+            }
+
+            Timer{
+                repeat: false
+                interval: 150
+                running: animation.width > 0
+
+                onTriggered: {
+                    animation.width = 0
+                }
+            }
+        }
 
         TrackerDisplay{
             id: trackerClock

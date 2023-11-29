@@ -1,5 +1,5 @@
 ﻿import QtCore
-import QtQml 2.15
+import QtQml
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
@@ -21,7 +21,7 @@ ApplicationWindow {
 
     //flags: //Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint
 
-    width: 380 * scaleFactor
+    width: 400 * scaleFactor
     height: 500 * scaleFactor
 
     minimumWidth: width
@@ -38,7 +38,7 @@ ApplicationWindow {
     //flags: Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint
     color: "transparent"
 
-    property real scaleFactor: Screen.devicePixelRatio < 1 ? 1 : Screen.devicePixelRatio/2  // This is completely random thing
+    property real scaleFactor: 1//Screen.devicePixelRatio < 1 ? 1 : Screen.devicePixelRatio/2  // This is completely random thing
 
     property var database
     property real current_track_rowid: -1
@@ -58,12 +58,16 @@ ApplicationWindow {
     QtObject{
         id: trackerInfo
 
+        //---------------------------------------
         // App Tracking State Flags----------
+        //---------------------------------------
         readonly property string flagIdle: 'track:no' // This state suggests that currently no job is being tracked
         readonly property string flagTracking: 'track:running' // This state suggests that currently a job is being tracked
         readonly property string flagPaused: 'track:paused' // This state suggests that a job is being tracked but currently paused
 
+        //---------------------------------------
         //------State Info-------
+        //---------------------------------------
         property string tString: "TimeTracker"
         property int trackedTime: 0
         property string state: flagIdle
@@ -71,18 +75,26 @@ ApplicationWindow {
         property string jobTitle: ''
         property string jobDesc: ''
 
+        function clear(){
+            tString = "TimeTracker";
+            trackedTime = 0;
+            state = flagIdle;
+            jobId = '';
+            jobTitle = '';
+            jobDesc = '';
+        }
+
+        //---------------------------------------
+        //--------State Change Functions-------
+        //---------------------------------------
         function changeStateIdle(){
             if(!isIdle()){
                 dbOps.updateLog(app.trackerInfo) //log before exiting the app
                 var msg = "You have stopped logging your time for the job ["+app.trackerInfo.jobTitle + "]"
                 systemTrayIcon.showMessage("Job Stopped!!",msg)
-
-                state = flagIdle
-                trackedTime = 0
-                jobID = ''
-                jobTitle = ''
-                jobDesc = ''
             }
+
+            clear();
         }
 
         function changeStateTracking(){
@@ -98,6 +110,9 @@ ApplicationWindow {
             }
         }
 
+        //---------------------------------------
+        //----- State Check functions ------------
+        //---------------------------------------
         function isRunning(){
             return state === flagTracking
         }
@@ -112,8 +127,8 @@ ApplicationWindow {
     }
 
     onClosing: {
-        if(settings.value("app-first-close",true)){
-            settings.setValue("app-first-close",0);
+        if(settings.notify_background_app_running_on_close){
+            settings.notify_background_app_running_on_close = false;
             systemTrayIcon.showMessage("App Running In Background!!!","You can access the app menu on system tray on task bar menu.")
         }
         appClosed = true
@@ -127,8 +142,10 @@ ApplicationWindow {
 
     Component.onCompleted: {
         console.log(app.scaleFactor,height,width)
+
         //console.log(SystemInformation.machineUniqueId)
         //console.log(Util.generateUuid())
+        console.log("Settings Location: ",StandardPaths.writableLocation(StandardPaths.AppDataLocation) + "/settings.config")
 
         database = LocalStorage.openDatabaseSync("TimeTrackerV2", "1.0", "Database used by TimeTracker App to store data", 1000000);
         dbOps.createDatabase()
@@ -152,7 +169,6 @@ ApplicationWindow {
       -----------------Visible Items Start-------------------
       -------------------------------------------------------
      */
-
     StackView{
         id: view
 
@@ -217,6 +233,16 @@ ApplicationWindow {
         ReportView{
             objectName: 'report-view'
             onBack: view.pop();
+
+            onStartTracking: {
+                app.trackerInfo.changeStateTracking();
+                view.push(trackPage);
+
+                if(!app.trackerInfo.jobID){
+                    app.trackerInfo.jobID = Util.generateUuid();
+                    dbOps.startLog(app.trackerInfo);
+                }
+            }
         }
     }
 
@@ -232,6 +258,7 @@ ApplicationWindow {
 
             onPauseTracking: {
                 app.trackerInfo.changeStatePaused()
+                app.trackerInfo.tString = "Paused!!";
             }
 
             onContinueTracking: {
@@ -257,7 +284,8 @@ ApplicationWindow {
         onChangeState: {
             if(app.trackerInfo.isRunning()){
                 app.trackerInfo.changeStatePaused()
-                systemTrayIcon.showMessage("Tracker Paused!!","You may find the app menu on the task bar icon or double click on the floating tracker to resume.")
+                systemTrayIcon.showMessage("Tracker Paused!!","You may find the app menu on the task bar icon or double click on the floating tracker to resume.");
+                app.trackerInfo.tString = "Paused!!";
             }
             else if(app.trackerInfo.isPaused()){
                 app.trackerInfo.changeStateTracking()
@@ -280,25 +308,17 @@ ApplicationWindow {
 
     Settings{
         id: settings
+        location: StandardPaths.writableLocation(StandardPaths.AppDataLocation) + "/settings.config"
+
+        // App First Time Flags;
+        property bool notify_background_app_running_on_close: true
+
+        //---------------------;
     }
 
     Images{
         id: images
     }
-
-//    onActiveChanged: {
-//        if(active){
-//            showNormal()
-//            trackerWindow.opacity = 1
-//        }else{
-//            trigger.repeat = true
-//            trackerWindow.opacity = 0.3
-
-//            if(app.state){
-//                secondaryContent.visible = true
-//            }
-//        }
-//    }
 
     /*
       -------------------------------------------------------
@@ -322,20 +342,21 @@ ApplicationWindow {
         }
     }
 
-    //    Timer{
-    //        id: trigger
-    //        running: !active
-    //        interval: 120000
-    //        repeat: true
-    //        onTriggered: {
-    //            if(trackerWindow.opacity === 0.4) trackerWindow.opacity = 0.2;
-    //            else {
-    //                if(!trackedTime) showMinimized();
-    //                console.log('App Inactive: Minimizing');
-    //                repeat = false
-    //            }
-    //        }
-    //    }
+    Timer{
+        id: dateChangeObserver
+
+        interval: 60000
+        repeat: true
+        running: true
+
+        onTriggered: {
+            var datetime = new Date();
+
+            if(Util.dateDifference(today,datetime)){
+                console.log("Date Changed")
+            }
+        }
+    }
 
     Timer{
         id: pauseFlash
@@ -344,7 +365,7 @@ ApplicationWindow {
         interval: 3000
 
         onTriggered: {
-            app.trackerInfo.tString = app.trackerInfo.tString === "Paused" ? Util.computeTrackedReadableTimeString(app.trackerInfo.trackedTime) : "Paused";
+            app.trackerInfo.tString = app.trackerInfo.tString === "Paused!!" ? Util.computeTrackedReadableTimeString(app.trackerInfo.trackedTime) : "Paused!!";
         }
     }
 
