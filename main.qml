@@ -76,12 +76,12 @@ ApplicationWindow {
         property string jobDesc: ''
 
         function clear(){
-            tString = "TimeTracker";
-            trackedTime = 0;
-            state = flagIdle;
-            jobId = '';
-            jobTitle = '';
-            jobDesc = '';
+            trackerInfo.tString = "TimeTracker";
+            trackerInfo.trackedTime = 0;
+            trackerInfo.state = flagIdle;
+            trackerInfo.jobID = '';
+            trackerInfo.jobTitle = '';
+            trackerInfo.jobDesc = '';
         }
 
         //---------------------------------------
@@ -342,6 +342,7 @@ ApplicationWindow {
         }
     }
 
+    //TODO:
     Timer{
         id: dateChangeObserver
 

@@ -14,8 +14,6 @@ int main(int argc, char *argv[])
     QDate date = QDate::currentDate();
     QString seed = date.toString(Qt::ISODate);
 
-    qInfo() << QCryptographicHash::hash(seed.toUtf8(),QCryptographicHash::Sha3_512);
-
     QSharedMemory shared(QCryptographicHash::hash(seed.toUtf8(),QCryptographicHash::Sha3_512));
     if( !shared.create( 512, QSharedMemory::ReadWrite) )
     {
@@ -23,15 +21,17 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
+    QSettings settings;
+    //settings.clear();
+
+    qInfo() << QCryptographicHash::hash(seed.toUtf8(),QCryptographicHash::Sha3_512);
+
     app.setApplicationName(QString("Time Tracker"));
     app.setOrganizationName(QString("GrayAtom"));
     app.setOrganizationDomain(QString("grayatom.com"));
 
     //For Implementing System Tray Icon
     app.setQuitOnLastWindowClosed(false);
-
-    //QSettings settings;
-    //settings.clear();
 
     QQmlApplicationEngine engine;
 
