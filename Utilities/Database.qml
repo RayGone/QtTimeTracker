@@ -80,8 +80,9 @@ Item {
 
     function getLatestOfJob(jobTitle){
         var data = getJobHistory(jobTitle);
-        if(data.length) data = data[0];
-        return data;
+        if(data.length) return data[0];
+        else return false;
+
     }
 
     function getReport(filter={'limit': 14,'flagGroupByJob': false}){

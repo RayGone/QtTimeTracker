@@ -34,5 +34,6 @@
         <file>QML/FramelessWindow.qml</file>
         <file>QML/Controls/DatePicker.qml</file>
         <file>QML/Controls/TemplateBody.qml</file>
+        <file>QML/Dialogs/AppUpdate.qml</file>
     </qresource>
 </RCC>

@@ -15,9 +15,19 @@ function readableTimeString(seconds){
     if(seconds < 60) return seconds+" seconds"
     var minutes = seconds / 3600
     var hours = parseInt(minutes)
-    minutes = Math.ceil((minutes - hours) * 60)
+    minutes = (minutes - hours) * 60
+    minutes = (minutes - parseInt(minutes)) < 0.5 ? parseInt(minutes) : Math.ceil(minutes)
 
     return (hours? hours + "H" + " " : "") + (minutes ? minutes + "M" : "")
+}
+
+
+function totalHours(seconds){
+    if(seconds < 60) return seconds+" seconds"
+
+    if(seconds < 600) return (seconds / 60).toFixed(2) + " minutes"
+
+    return (seconds/3600).toFixed(2) + " hours"
 }
 
 

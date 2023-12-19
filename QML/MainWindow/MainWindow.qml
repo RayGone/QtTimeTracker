@@ -68,7 +68,7 @@ Page {
     StartJobPrompt{
         id: newJob
         width: mainPage.width
-        height: mainPage.height/2
+        height: mainPage.height/1.9
 
         onStart: prepareNewJob(title, description)
     }

@@ -68,7 +68,7 @@ Page{
         for(var i in data){
             total_time += data[i]['logged_time']
         }
-       totalLog.text =  Util.readableTimeString(total_time)
+       totalLog.text =  Util.readableTimeString(total_time) + " ("+ Util.totalHours(total_time) + ")"
     }
 
     function prepareNewJob(title, description){
@@ -166,7 +166,7 @@ Page{
 
             Rectangle{
                 width: fromDateText.width + 20
-                height: parent.height
+                height: fromDateText.height + 10
                 color: (datePickerPopup.changeDate === datePickerPopup.changeFromDate && datePickerPopup.visible) ? app.secondaryColor : app.primaryColor
                 radius: 20* app.scaleFactor
                 TextTemplate{
@@ -201,7 +201,7 @@ Page{
 
             Rectangle{
                 width: toDateText.width + 20
-                height: parent.height
+                height: toDateText.height + 10
                 color: (datePickerPopup.changeDate === datePickerPopup.changeToDate && datePickerPopup.visible) ? app.secondaryColor : app.primaryColor
                 radius: 20* app.scaleFactor
                 TextTemplate{
@@ -317,7 +317,6 @@ Page{
             onReplayJob: {
                 var rji = app.dbOps.getLatestOfJob(replayJobInfo.job_title)
                 if(rji){
-                    rji = rji[0]
                     if(Util.getDateString(app.today) === Util.getDateString(new Date(rji.work_date))){
                         // start - update to db
                         linkToOldJob(rji)

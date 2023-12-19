@@ -1,5 +1,6 @@
 QT += core
 QT += quick
+QT += widgets
 
 SOURCES += \
         main.cpp
@@ -36,6 +37,7 @@ DISTFILES += \
     QML/Controls/TemplateBody.qml \
     QML/Controls/TextTemplate.qml \
     QML/Controls/TrackerDisplay.qml \
+    QML/Dialogs/AppUpdate.qml \
     QML/FramelessWindow.qml \
     QML/Images.qml \
     QML/MainWindow/MainWindow.qml \

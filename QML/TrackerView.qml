@@ -41,7 +41,7 @@ Page{
             total += history.tableModel[i]['logged_time']
         }
 
-        totalLogText.text = "Total: " + Util.readableTimeString(total);
+        totalLogText.text = "Total: " + Util.readableTimeString(total) + " (" + Util.totalHours(total) + ")";
     }
 
     Column{
