@@ -12,6 +12,7 @@ import "qrc:/Utilities/Utils.js" as Util
 
 import "qrc:/QML/"
 import "qrc:/QML/Controls"
+import "qrc:/QML/Dialogs"
 import "qrc:/QML/MainWindow"
 import "qrc:/Utilities"
 import "qrc:/Icons"
@@ -54,6 +55,18 @@ ApplicationWindow {
     property alias settings: settings
     property alias systemTrayIcon: systemTrayIcon
     readonly property alias trackerInfo: trackerInfo
+
+    Settings{
+        id: settings
+        location: StandardPaths.writableLocation(StandardPaths.AppDataLocation) + "/settings.config"
+
+        readonly property string app_version: 'v1.0.3'
+        readonly property string app_release_url: 'https://api.github.com/repos/RayGone/QtTimeTracker/releases'
+        // App First Time Flags;
+        property bool notify_background_app_running_on_close: true
+
+        //---------------------;
+    }
 
     QtObject{
         id: trackerInfo
@@ -142,6 +155,7 @@ ApplicationWindow {
 
     Component.onCompleted: {
         console.log(app.scaleFactor,height,width)
+        appUpdate.checkForUpdates()
 
         //console.log(SystemInformation.machineUniqueId)
         //console.log(Util.generateUuid())
@@ -152,8 +166,6 @@ ApplicationWindow {
 
         view.push(mainPage)
     }
-
-
 
     function showMainWindow(){
         if(appClosed){
@@ -181,6 +193,7 @@ ApplicationWindow {
                 source: 'qrc:/Icons/hourglass.gif'
                 fillMode: Image.PreserveAspectFit
                 //speed: 0.5
+                visible: false
             }
 
             Image{
@@ -304,20 +317,14 @@ ApplicationWindow {
 
     Database{
         id: dbOps
-    }    
-
-    Settings{
-        id: settings
-        location: StandardPaths.writableLocation(StandardPaths.AppDataLocation) + "/settings.config"
-
-        // App First Time Flags;
-        property bool notify_background_app_running_on_close: true
-
-        //---------------------;
     }
 
     Images{
         id: images
+    }
+
+    AppUpdate{
+        id: appUpdate
     }
 
     /*
